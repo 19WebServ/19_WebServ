@@ -6,19 +6,23 @@
 #    By: jhouyet <jhouyet@student.s19.be>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/12/11 07:57:14 by jhouyet           #+#    #+#              #
-#    Updated: 2024/12/11 08:02:19 by jhouyet          ###   ########.fr        #
+#    Updated: 2024/12/11 10:21:21 by jhouyet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 
-CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+ifeq ($(shell uname), Darwin)
+    CXX = /opt/homebrew/bin/g++-14
+else
+    CXX = g++
+endif
+
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
 CPPFLAGS += -I./include
 
 SRC_DIR = src
 INC_DIR = include
-CONFIG_DIR = config
 OBJ_DIR = obj
 
 SRCS = $(SRC_DIR)/main.cpp $(SRC_DIR)/Server.cpp $(SRC_DIR)/Request.cpp $(SRC_DIR)/Response.cpp

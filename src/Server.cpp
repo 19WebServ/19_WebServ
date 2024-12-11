@@ -6,7 +6,7 @@
 /*   By: jhouyet <jhouyet@student.s19.be>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 07:59:57 by jhouyet           #+#    #+#             */
-/*   Updated: 2024/12/11 08:26:38 by jhouyet          ###   ########.fr       */
+/*   Updated: 2024/12/11 10:22:34 by jhouyet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <cstring> // For memset
-#include <string>  // For std::string
+#include <cstring>
+#include <string>
+#include <cstdlib>
 
 /**
  * @brief Construct a new Server:: Server object
@@ -84,13 +85,13 @@ void Server::run() {
         response += "\r\n"; // End of headers
         response += "Hello World"; // The body of the response
 
-    // Send the response
-    send(new_socket, response.c_str(), response.size(), 0);
-    std::cout << "Response sent." << std::endl;
+        // Send the response
+        send(new_socket, response.c_str(), response.size(), 0);
+        std::cout << "Response sent." << std::endl;
 
-    // Shutdown the socket for sending and receiving
-    shutdown(new_socket, SHUT_RDWR);
-    // Close the connection
-    close(new_socket);
+        // Shutdown the socket for sending and receiving
+        shutdown(new_socket, SHUT_RDWR);
+        // Close the connection
+        close(new_socket);
     }
 }
