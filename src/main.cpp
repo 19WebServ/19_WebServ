@@ -1,28 +1,20 @@
-#include <iostream>
-#include "../include/Server.hpp"
+#include "Socket.hpp"
 
-/**
- * @brief 
- * 
- * @param argc 
- * @param argv 
- * @return int 
- */
-int main(int argc, char **argv) {
-    std::string configFile = "default.conf";
-    if (argc > 1) {
-        configFile = argv[1];
-    }
 
-    std::cout << "Starting Webserv with configuration file: " << configFile << std::endl;
-
-    try {
-        Server server(configFile);
-        server.run();
-    } catch (const std::exception &e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+int init_server(Socket server)
+{
+    if (server.createSocket() < 0 || server.bindSocket() < 0 || server.listenSocket() < 0) 
         return 1;
-    }
+    std::cout << "Server is listening port 8080..." << std::endl;
+    return 0;
+}
 
+int main() 
+{
+    Socket server(8080, 0);
+    if (init_server(server))
+        return -1;
+
+    server.closeSocket();
     return 0;
 }
