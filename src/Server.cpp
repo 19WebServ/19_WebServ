@@ -6,7 +6,7 @@
 /*   By: jhouyet <jhouyet@student.s19.be>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 07:59:57 by jhouyet           #+#    #+#             */
-/*   Updated: 2024/12/11 10:22:34 by jhouyet          ###   ########.fr       */
+/*   Updated: 2024/12/11 10:49:58 by jhouyet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstring>
 #include <string>
 #include <cstdlib>
+#include <cstdio>
 
 /**
  * @brief Construct a new Server:: Server object
