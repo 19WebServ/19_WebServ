@@ -1,8 +1,8 @@
 #include <iostream>
-#include <cstring>           // Pour memset
-#include <sys/socket.h>      // Pour les sockets
-#include <netinet/in.h>      // Pour sockaddr_in
-#include <unistd.h>          // Pour close()
+#include <cstring>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
 class Socket 
 {
