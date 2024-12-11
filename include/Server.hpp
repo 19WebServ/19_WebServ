@@ -6,7 +6,7 @@
 /*   By: jhouyet <jhouyet@student.s19.be>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 08:00:25 by jhouyet           #+#    #+#             */
-/*   Updated: 2024/12/11 08:41:43 by jhouyet          ###   ########.fr       */
+/*   Updated: 2024/12/11 10:12:15 by jhouyet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 
 #include <string>
 #include <iostream>
-#include <thread>
-#include <chrono>
 
 class Server {
 public:
