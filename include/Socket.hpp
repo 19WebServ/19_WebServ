@@ -1,8 +1,11 @@
+#pragma once
+
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <sstream>
 
 class Socket 
 {
@@ -12,10 +15,14 @@ class Socket
 
         int     createSocket();
         int     bindSocket();
-        int     listenSocket(int backlog = 5);
+        int     listenSocket(int backlog = 5); //backlog -> nombre deconnexion en attente pouvant etre géré
         int     acceptConnection();
-        void    sendResponse(int client_sock, const std::string& response);
         void    closeSocket();
+
+        int     sendData(int target_sock, const char *data, unsigned int len);
+        int     receiveData(int target_sock, char *buffer, unsigned int len);
+
+        std::string getClientIP(struct sockaddr_in *client_addr);
 
     private:
         int _server_sock;
