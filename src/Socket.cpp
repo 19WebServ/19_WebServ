@@ -1,116 +1,92 @@
 #include "../include/Socket.hpp"
+#include <sys/socket.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+#include <netdb.h>
+#include <cstdlib>
 
-Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY)
+Socket::Socket() : _socket_fd(-1) 
 {
-    this->_server_sock = -1;
-    memset(&this->_server_addr, 0, sizeof(this->_server_addr));
-    this->_server_addr.sin_family = AF_INET;
-    this->_server_addr.sin_port = htons(port);          // Port d'écoute
-    this->_server_addr.sin_addr.s_addr = htonl(ip);
+    memset(&_addr, 0, sizeof(_addr));
 }
 
-Socket::~Socket()
+Socket::~Socket() 
 {
-    this->closeSocket();
+    closeSocket();
 }
 
-int Socket::createSocket()
+int Socket::sendData(int target_sock, const char *data, unsigned int len) 
 {
-    this->_server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (this->_server_sock < 0) {
-        std::cerr << "Error\nSocket creation failure" << std::endl;
-        return -1;
-    }
-
-    // Permet de réutiliser l'adresse immédiatement après la fermeture
-    int opt = 1;
-    if (setsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        std::cerr << "Error\nFailed to set socket options" << std::endl;
-        return -1;
-    }
-
-    return this->_server_sock;
+    int bytes_sent = send(target_sock, data, len, 0);
+    if (bytes_sent < 0)
+        perror("send failed");
+    return bytes_sent;
 }
 
-int Socket::bindSocket()
-{
-    if (bind(this->_server_sock, reinterpret_cast<struct sockaddr*>(&this->_server_addr), sizeof(this->_server_addr)) < 0) 
-    {
-        std::cerr << "Error\nSocket binding failure" << std::endl;
-        return -1;
-    }
-    return 0;
-}
-
-int Socket::listenSocket(int backlog)
-{
-    if (listen(this->_server_sock, backlog) < 0) 
-    {
-        std::cerr << "Error\nSocket wiretap failure" << std::endl;
-        return -1;
-    }
-    return 0;
-}
-
-int Socket::acceptConnection() {
-    struct sockaddr_in client_addr;
-    socklen_t client_len = sizeof(client_addr);
-    int client_sock = accept(this->_server_sock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
-    if (client_sock >= 0) 
-    {
-        std::string clientIP = getClientIP(&client_addr);
-        std::cout << "Client connected: " << clientIP << std::endl;
-    } 
-    else
-        std::cerr << "Error\nFailed to accept client connection." << std::endl;
-    return client_sock;
-}
-
-void Socket::closeSocket() {
-    if (this->_server_sock >= 0)
-        close(this->_server_sock);
-}
-/**
- * @brief Construct a new Response:: Response object
- * 
- * @param target, data, data_len
- * 
- * @return nbr_bits or -1
- */
-int Socket::sendData(int target_sock, const char *data, unsigned int len)
-{
-    if (target_sock < 0)
-    {
-        std::cerr<<"Error\nInvalide target_sock"<<std::endl;
-        return -1;
-    }
-    int res = send(target_sock, data, len, 0);
-    if (res == -1)
-        std::cerr<< "Error\nFailed to send data" << std::endl;
-    return res;
-}
-
-/**
- * @brief Construct a new Response:: Response object
- * 
- * @param target, data, data_len
- * 
- * @return nbr_bits or -1
- */
 int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
 {
-    if (target_sock < 0)
-    {
-        std::cerr<<"Error\nInvalide target_sock"<<std::endl;
-        return -1;
-    }
-    int res = recv(target_sock, buffer, len, 0);
-    if (res < 0)
-        std::cerr << "Error\nFailed to receive data." << std::endl;
-    return res;
+    int bytes_received = recv(target_sock, buffer, len, 0);
+    if (bytes_received < 0)
+        perror("recv failed");
+    return bytes_received;
 }
 
-std::string Socket::getClientIP(struct sockaddr_in *client_addr)
+void Socket::closeSocket() 
+{
+    if (_socket_fd >= 0) 
+    {
+        if (close(_socket_fd) < 0)
+            perror("Socket close failed");
+        _socket_fd = -1;
+    }
+}
+
+/*------ Server Socket ------*/
+
+
+ServerSocket::ServerSocket(int port) 
+{
+    _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_socket_fd < 0) 
+    {
+        perror("Socket creation failed");
+        exit(-1);
+    }
+
+    int opt = 1;
+    if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+    {
+        perror("setsockopt failed");
+        exit(-1);
+    }
+
+    _addr.sin_family = AF_INET;
+    _addr.sin_addr.s_addr = INADDR_ANY;
+    _addr.sin_port = htons(port);
+}
+
+int ServerSocket::bindSocket() 
+{
+    if (bind(_socket_fd, (struct sockaddr *)&_addr, sizeof(_addr)) < 0) 
+    {
+        perror("bind failed");
+        return -1;
+    }
+    return 0;
+}
+
+int ServerSocket::listenSocket(int backlog) 
+{
+    if (listen(_socket_fd, backlog) < 0)
+    {
+        perror("listen failed");
+        return -1;
+    }
+    return 0;
+}
+
+std::string ServerSocket::getClientIP(struct sockaddr_in *client_addr)
 {
     unsigned char *ip = reinterpret_cast<unsigned char *>(&(client_addr->sin_addr.s_addr));
     
@@ -120,5 +96,62 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
        << static_cast<int>(ip[2]) << "."
        << static_cast<int>(ip[3]);
     
-    return ss.str();
+    return ss.str();  
+}
+
+int ServerSocket::acceptConnection() 
+{
+    sockaddr_in client_addr;
+    socklen_t addrlen = sizeof(client_addr);
+    int client_sock = accept(_socket_fd, (struct sockaddr *)&client_addr, &addrlen);
+    if (client_sock < 0)
+        perror("accept failed");
+    else
+    {
+        std::string clien_Ip = getClientIP(&client_addr);
+        std::cout << "Client connected: " << clien_Ip << std::endl;
+    }
+    return client_sock;
+}
+
+/*------ Client Socket ------*/
+
+ClientSocket::ClientSocket(const std::string &host, int port) 
+{
+    _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_socket_fd < 0) 
+    {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    std::stringstream port_stream;
+    port_stream << port;
+    std::string port_str = port_stream.str();
+
+    int ret = getaddrinfo(host.c_str(), port_str.c_str(), &hints, &res);
+    if (ret != 0) 
+    {
+        std::cerr << "getaddrinfo failed: " << gai_strerror(ret) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(&_addr, res->ai_addr, sizeof(sockaddr_in));
+
+    freeaddrinfo(res);
+}
+
+void ClientSocket::connectToServer() 
+{
+    if (connect(_socket_fd, (struct sockaddr *)&_addr, sizeof(_addr)) < 0) 
+    {
+        perror("Connection failed");
+        exit(-1);
+    }
+    std::cout << "Connected to server." << std::endl;
 }
