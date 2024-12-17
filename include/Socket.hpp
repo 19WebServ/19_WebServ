@@ -21,6 +21,7 @@ class Socket
 
         int     sendData(int target_sock, const char *data, unsigned int len);
         int     receiveData(int target_sock, char *buffer, unsigned int len);
+        int     getSocketFD() const;
 
         std::string getClientIP(struct sockaddr_in *client_addr);
 

@@ -128,3 +128,7 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
        << static_cast<int>(ip[3]);
     return ss.str();
 }
+
+int Socket::getSocketFD() const {
+    return this->_server_sock;
+}
