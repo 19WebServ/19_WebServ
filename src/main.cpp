@@ -1,5 +1,6 @@
 #include <iostream>
 #include "../include/Server.hpp"
+#include "../include/ConfigFile.hpp"
 
 /**
  * @brief 
@@ -9,16 +10,17 @@
  * @return int 
  */
 int main(int argc, char **argv) {
-    std::string configFile = "default.conf";
-    if (argc > 1) {
-        configFile = argv[1];
+    std::string file = "default.conf";
+    if (argc == 2) {
+        file = argv[1];
     }
 
-    std::cout << "Starting Webserv with configuration file: " << configFile << std::endl;
+    std::cout << "Starting Webserv with configuration file: " << file << std::endl;
 
     try {
-        Server server(configFile);
-        server.run();
+        ConfigFile configFile(file);
+        // Server server(file);
+        // server.run();
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
