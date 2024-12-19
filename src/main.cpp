@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         file = argv[1];
     }
 
-    std::cout << "Starting Webserv with configuration file: " << file << std::endl;
+    // std::cout << "Starting Webserv with configuration file: " << file << std::endl;
 
     try {
         ConfigFile configFile(file);

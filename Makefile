@@ -13,7 +13,13 @@ SRC_DIR = src
 INC_DIR = include
 OBJ_DIR = obj
 
-SRCS = $(SRC_DIR)/main.cpp $(SRC_DIR)/Server.cpp $(SRC_DIR)/Request.cpp $(SRC_DIR)/Response.cpp
+SRCS =	$(SRC_DIR)/main.cpp \
+		$(SRC_DIR)/Server.cpp \
+		$(SRC_DIR)/Request.cpp \
+		$(SRC_DIR)/Response.cpp \
+		$(SRC_DIR)/ConfigFile.cpp \
+		# $(SRC_DIR)/ServerConfig.cpp \
+
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 all: $(NAME)

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2024/12/18 17:54:09 by vdecleir         ###   ########.fr       */
+/*   Updated: 2024/12/19 18:59:05 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,26 +16,22 @@
 # include <iostream>
 # include <vector>
 # include <fstream>
+# include <sstream>
+# include <exception>
 # include "./ServerConfig.hpp"
-
-class ProblemOccured : public std::exception {
-private:
-    std::string message;
-
-public:
-    explicit ProblemOccured(const std::string& error) : message(error) {}
-    virtual const char* what() const throw() {
-        return message.c_str();
-    }
-};
-
 
 class ConfigFile
 {
 private:
+    //-----ATTRIBUTES-----//
     std::vector<ServerConfig> _servers;
-    
-    std::string skipWhitespaces(std::string);
+    std::vector<std::vector<std::string> > _serversConfigVector;
+
+    //-----METHODS-----//
+    void fileInVect(const std::string &, std::vector<std::string> &);
+    std::string cleanLine(std::string);
+    void splitServer(std::vector<std::string> &);
+    void parseVect();
     
 public:
     ConfigFile(const std::string &);
