@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2024/12/19 18:59:05 by vdecleir         ###   ########.fr       */
+/*   Updated: 2024/12/20 15:20:24 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,19 +18,19 @@
 # include <fstream>
 # include <sstream>
 # include <exception>
-# include "./ServerConfig.hpp"
+// # include "./ServerConfig.hpp"
 
 class ConfigFile
 {
 private:
     //-----ATTRIBUTES-----//
-    std::vector<ServerConfig> _servers;
-    std::vector<std::vector<std::string> > _serversConfigVector;
+    // std::vector<ServerConfig> _servers;
+    std::vector<std::string> _serversConfigStr;
 
     //-----METHODS-----//
-    void fileInVect(const std::string &, std::vector<std::string> &);
+    void fileInStr(const std::string &, std::string &);
     std::string cleanLine(std::string);
-    void splitServer(std::vector<std::string> &);
+    void SplitStr(std::string &);
     void parseVect();
     
 public:
