@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <map>
 
 #define MAX_CLIENTS 100
 
@@ -40,7 +39,7 @@ void handle_client(int client_sock, Socket &server) {
         std::cout << "Received from client:\n" << buffer << std::endl;
 
         // Lire le fichier index.html
-        std::string htmlContent = readFile("web_pages/index.html");
+        std::string htmlContent = readFile("pages_html/index.html");
         if (htmlContent.empty()) {
             std::cerr << "Failed to read index.html." << std::endl;
             return;
