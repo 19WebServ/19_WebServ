@@ -80,7 +80,8 @@ void check_fd(Socket &server)
 {
     for (size_t i = 0; i < server._poll_fds.size(); ++i) 
     {
-        if (server._poll_fds[i].revents & POLLIN) {
+        if (server._poll_fds[i].revents & POLLIN) 
+        {
             if (server._poll_fds[i].fd == server.getSocketFD())
             {
                 // Nouvelle connexion
@@ -97,10 +98,32 @@ void check_fd(Socket &server)
             } 
             else 
             {
-                // Données reçues d'un client existant
+                // Vérification des erreurs sur le socket client
+                int error = 0;
+                socklen_t len = sizeof(error);
+                if (getsockopt(server._poll_fds[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0) 
+                {
+                    std::cerr << "Error detected on client socket: " << strerror(error) << std::endl;
+                    close(server._poll_fds[i].fd);
+                    server._poll_fds.erase(server._poll_fds.begin() + i);
+                    --i;
+                    continue;
+                }
+
+                // Traiter les données du client
                 handle_client(server._poll_fds[i].fd, server);
-                server._poll_fds.erase(server._poll_fds.begin() + i); // Supprime le client déconnecté
-                --i;
+
+                // Après traitement, vérifier si le client est encore connecté
+                char check_buffer;
+                int res = recv(server._poll_fds[i].fd, &check_buffer, 1, MSG_PEEK | MSG_DONTWAIT);
+                if (res == 0 || (res < 0 && errno != EWOULDBLOCK && errno != EAGAIN)) 
+                {
+                    // Le client est déconnecté
+                    std::cout << "Client disconnected." << std::endl;
+                    close(server._poll_fds[i].fd);
+                    server._poll_fds.erase(server._poll_fds.begin() + i);
+                    --i;
+                }
             }
         }
     }

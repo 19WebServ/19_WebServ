@@ -37,7 +37,13 @@ int Socket::createSocket()
         std::cerr << "Error\nFailed to set socket options" << std::endl;
         return -1;
     }
-
+    int current_opt;
+    socklen_t opt_len = sizeof(current_opt);
+    if (getsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0) {
+        std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
+    } else {
+        std::cerr << "Failed to get SO_REUSEADDR option." << std::endl;
+    }
     return this->_server_sock;
 }
 
@@ -73,6 +79,17 @@ int Socket::acceptConnection() {
     {
         std::string clientIP = getClientIP(&client_addr);
         std::cout << "Client connected: " << clientIP << std::endl;
+
+        int error = 0;
+        socklen_t len = sizeof(error);
+        if (getsockopt(client_sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+            std::cerr << "Error: failed to retrieve socket error status for client." << std::endl;
+        else if (error != 0)
+        {
+            std::cerr << "Client socket has an error: " << strerror(error) << std::endl;
+            close(client_sock);
+            return -1;
+        }
     } 
     else 
         std::cerr << "Error\nFailed to accept client connection." << std::endl;
@@ -81,7 +98,13 @@ int Socket::acceptConnection() {
 
 void Socket::closeSocket() {
     if (this->_server_sock >= 0)
+    {
+        int error = 0;
+        socklen_t len = sizeof(error);
+        if (getsockopt(this->_server_sock, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0) 
+            std::cerr << "Socket error before closing: " << strerror(error) << std::endl;
         close(this->_server_sock);
+    }
 }
 /**
  * @brief Construct a new Response:: Response object
