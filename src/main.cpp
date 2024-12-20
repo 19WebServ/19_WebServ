@@ -74,47 +74,51 @@ void handle_client(int client_sock, Socket &server) {
     std::cout << "Client socket closed." << std::endl;
 }
 
-int main() {
+
+
+void check_fd(Socket &server)
+{
+    for (size_t i = 0; i < server._poll_fds.size(); ++i) 
+    {
+        if (server._poll_fds[i].revents & POLLIN) {
+            if (server._poll_fds[i].fd == server.getSocketFD())
+            {
+                // Nouvelle connexion
+                int client_sock = server.acceptConnection();
+                if (client_sock >= 0) 
+                {
+                    std::cout << "New client connected!" << std::endl;
+                    struct pollfd client_pfd;
+                    client_pfd.fd = client_sock;
+                    client_pfd.events = POLLIN;
+                    client_pfd.revents = 0;
+                    server._poll_fds.push_back(client_pfd);
+                }
+            } 
+            else 
+            {
+                // Données reçues d'un client existant
+                handle_client(server._poll_fds[i].fd, server);
+                server._poll_fds.erase(server._poll_fds.begin() + i); // Supprime le client déconnecté
+                --i;
+            }
+        }
+    }
+}
+
+
+int main()
+{
     Socket server(8080, 0);
     if (init_server(server))
         return -1;
 
-    // Structure poll pour surveiller plusieurs descripteurs
-    std::vector<pollfd> poll_fds;
-    struct pollfd pfd;
-    pfd.fd = server.getSocketFD();
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-    poll_fds.push_back(pfd);
-
-    while (true) {
-        int event_count = poll(poll_fds.data(), poll_fds.size(), -1); // Bloque jusqu'à un événement
-        if (event_count < 0) {
-            std::cerr << "poll() error." << std::endl;
+    while (true) 
+    {
+        int event_count = server.server_poll();
+        if (event_count < 0)
             break;
-        }
-
-        for (size_t i = 0; i < poll_fds.size(); ++i) {
-            if (poll_fds[i].revents & POLLIN) {
-                if (poll_fds[i].fd == server.getSocketFD()) {
-                    // Nouvelle connexion
-                    int client_sock = server.acceptConnection();
-                    if (client_sock >= 0) {
-                        std::cout << "New client connected!" << std::endl;
-                        struct pollfd client_pfd;
-                        client_pfd.fd = client_sock;
-                        client_pfd.events = POLLIN;
-                        client_pfd.revents = 0;
-                        poll_fds.push_back(client_pfd);
-                    }
-                } else {
-                    // Données reçues d'un client existant
-                    handle_client(poll_fds[i].fd, server);
-                    poll_fds.erase(poll_fds.begin() + i); // Supprime le client déconnecté
-                    --i;
-                }
-            }
-        }
+        check_fd(server);
     }
     server.closeSocket();
     return 0;

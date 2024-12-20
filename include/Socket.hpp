@@ -6,6 +6,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <sstream>
+#include <iostream>
+#include <vector>
+#include <poll.h>
 
 class Socket 
 {
@@ -25,8 +28,15 @@ class Socket
 
         std::string getClientIP(struct sockaddr_in *client_addr);
 
+        int server_poll();
+        std::vector<pollfd> _poll_fds;
+
+
     private:
         int _server_sock;
         struct sockaddr_in _server_addr;
+
+        /*gestion poll*/
+        struct pollfd _pfd;
 };
 

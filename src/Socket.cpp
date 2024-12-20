@@ -1,4 +1,5 @@
 #include "../include/Socket.hpp"
+#include <poll.h>
 
 Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY)
 {
@@ -57,6 +58,10 @@ int Socket::listenSocket(int backlog)
         std::cerr << "Error\nSocket wiretap failure" << std::endl;
         return -1;
     }
+    this->_pfd.fd = this->getSocketFD();
+    this->_pfd.events = POLLIN;
+    this->_pfd.revents = 0;
+    this->_poll_fds.push_back(this->_pfd);
     return 0;
 }
 
@@ -131,4 +136,14 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
 
 int Socket::getSocketFD() const {
     return this->_server_sock;
+}
+
+int Socket::server_poll()
+{
+    int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
+    if (event_count < 0)
+    {
+        std::cerr << "Error\n Poll failed" << std::endl;
+    }
+    return event_count;
 }
