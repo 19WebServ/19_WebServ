@@ -3,9 +3,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #define MAX_CLIENTS 100
 
+// Fonction pour lire un fichier
 std::string readFile(const char *filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
@@ -24,6 +26,7 @@ std::string readFile(const char *filename) {
     return buffer;
 }
 
+// Initialisation du serveur
 int init_server(Socket &server) {
     if (server.createSocket() < 0 || server.bindSocket() < 0 || server.listenSocket() < 0) 
         return 1;
@@ -31,8 +34,9 @@ int init_server(Socket &server) {
     return 0;
 }
 
-void handle_client(int client_sock, Socket &server) {
-    char buffer[1024] = {0};
+// Traitement d'un client non bloquant
+void handle_client_nonblocking(int client_sock, Socket &server) {
+    char buffer[1024];
     int bytes_receiv = server.receiveData(client_sock, buffer, sizeof(buffer));
     if (bytes_receiv > 0) {
         buffer[bytes_receiv] = '\0';
@@ -45,12 +49,10 @@ void handle_client(int client_sock, Socket &server) {
             return;
         }
 
-        // Conversion de la taille en string pour C++98
         std::ostringstream oss;
         oss << htmlContent.size();
         std::string contentLength = oss.str();
 
-        // Construire la réponse HTTP
         std::string response = 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/html\r\n"
@@ -58,67 +60,46 @@ void handle_client(int client_sock, Socket &server) {
             "\r\n" +
             htmlContent;
 
-        // Envoyer la réponse au client
-        int bytes_sent = server.sendData(client_sock, response.c_str(), response.size());
-        if (bytes_sent > 0)
-            std::cout << "Response sent to client: HTTP/1.1 200 OK" << std::endl;
-        else
-            std::cerr << "Failed to send response to client." << std::endl;
+        // Envoi non bloquant
+        int total_sent = 0;
+        while (total_sent < (int)response.size()) {
+            int bytes_sent = server.sendData(client_sock, response.c_str() + total_sent, response.size() - total_sent);
+            if (bytes_sent > 0) {
+                total_sent += bytes_sent;
+            } else if (errno != EWOULDBLOCK && errno != EAGAIN) {
+                std::cerr << "Failed to send response to client." << std::endl;
+                break;
+            }
+        }
     } else if (bytes_receiv == 0) {
         std::cout << "Client disconnected." << std::endl;
-    } else {
+    } else if (errno != EWOULDBLOCK && errno != EAGAIN) {
         std::cerr << "Failed to receive data from client." << std::endl;
     }
-
-    close(client_sock);
-    std::cout << "Client socket closed." << std::endl;
 }
 
-
-
-void check_fd(Socket &server)
-{
-    for (size_t i = 0; i < server._poll_fds.size(); ++i) 
-    {
-        if (server._poll_fds[i].revents & POLLIN) 
-        {
-            if (server._poll_fds[i].fd == server.getSocketFD())
-            {
+// Gestion des descripteurs avec poll()
+void check_fd(Socket &server) {
+    for (size_t i = 0; i < server._poll_fds.size(); ++i) {
+        if (server._poll_fds[i].revents & POLLIN) {
+            if (server._poll_fds[i].fd == server.getSocketFD()) {
                 // Nouvelle connexion
                 int client_sock = server.acceptConnection();
-                if (client_sock >= 0) 
-                {
+                if (client_sock >= 0) {
                     std::cout << "New client connected!" << std::endl;
                     struct pollfd client_pfd;
                     client_pfd.fd = client_sock;
-                    client_pfd.events = POLLIN;
+                    client_pfd.events = POLLIN | POLLOUT;
                     client_pfd.revents = 0;
                     server._poll_fds.push_back(client_pfd);
                 }
-            } 
-            else 
-            {
-                // Vérification des erreurs sur le socket client
-                int error = 0;
-                socklen_t len = sizeof(error);
-                if (getsockopt(server._poll_fds[i].fd, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0) 
-                {
-                    std::cerr << "Error detected on client socket: " << strerror(error) << std::endl;
-                    close(server._poll_fds[i].fd);
-                    server._poll_fds.erase(server._poll_fds.begin() + i);
-                    --i;
-                    continue;
-                }
+            } else {
+                handle_client_nonblocking(server._poll_fds[i].fd, server);
 
-                // Traiter les données du client
-                handle_client(server._poll_fds[i].fd, server);
-
-                // Après traitement, vérifier si le client est encore connecté
+                // Vérification de la déconnexion client
                 char check_buffer;
                 int res = recv(server._poll_fds[i].fd, &check_buffer, 1, MSG_PEEK | MSG_DONTWAIT);
-                if (res == 0 || (res < 0 && errno != EWOULDBLOCK && errno != EAGAIN)) 
-                {
-                    // Le client est déconnecté
+                if (res == 0 || (res < 0 && errno != EWOULDBLOCK && errno != EAGAIN)) {
                     std::cout << "Client disconnected." << std::endl;
                     close(server._poll_fds[i].fd);
                     server._poll_fds.erase(server._poll_fds.begin() + i);
@@ -129,20 +110,23 @@ void check_fd(Socket &server)
     }
 }
 
-
-int main()
-{
+// Fonction principale
+int main() {
     Socket server(8080, 0);
-    if (init_server(server))
-        return -1;
 
-    while (true) 
-    {
+    // Initialisation du serveur
+    if (init_server(server)) {
+        return -1;
+    }
+
+    while (true) {
         int event_count = server.server_poll();
-        if (event_count < 0)
+        if (event_count < 0) {
             break;
+        }
         check_fd(server);
     }
+
     server.closeSocket();
     return 0;
 }
