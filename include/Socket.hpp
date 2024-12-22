@@ -22,6 +22,7 @@ class Socket
         int     acceptConnection();
         void    closeSocket();
 
+        int     getPort();
         int     sendData(int target_sock, const char *data, unsigned int len);
         int     receiveData(int target_sock, char *buffer, unsigned int len);
         int     getSocketFD() const;
@@ -34,6 +35,7 @@ class Socket
 
     private:
         int _server_sock;
+        const int _port;
         struct sockaddr_in _server_addr;
 
         /*gestion poll*/

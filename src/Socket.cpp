@@ -1,12 +1,12 @@
 #include "../include/Socket.hpp"
 #include <poll.h>
 
-Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY)
+Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY) : _port(port)
 {
     this->_server_sock = -1;
     memset(&this->_server_addr, 0, sizeof(this->_server_addr));
     this->_server_addr.sin_family = AF_INET;
-    this->_server_addr.sin_port = htons(port);          // Port d'écoute
+    this->_server_addr.sin_port = htons(_port);
     this->_server_addr.sin_addr.s_addr = htonl(ip);
 }
 
@@ -14,39 +14,43 @@ Socket::~Socket()
 {
     this->closeSocket();
 }
-
-// int Socket::createSocket()
-// {
-//     this->_server_sock = socket(AF_INET, SOCK_STREAM, 0);
-//     if (!this->_server_sock)
-//         std::cerr << "Error\nSocket creation failure" << std::endl;
-//     return this->_server_sock;
-// }
-
+/**
+ * @brief Create a new Socket | set Socket_option |  make addresses reusable
+ * 
+ * @param none
+ * 
+ * @return int 
+ */
 int Socket::createSocket()
 {
     this->_server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (this->_server_sock < 0) {
+    if (this->_server_sock < 0) 
+    {
         std::cerr << "Error\nSocket creation failure" << std::endl;
         return -1;
     }
-
-    // Permet de réutiliser l'adresse immédiatement après la fermeture
     int opt = 1;
-    if (setsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+    {
         std::cerr << "Error\nFailed to set socket options" << std::endl;
         return -1;
     }
     int current_opt;
     socklen_t opt_len = sizeof(current_opt);
-    if (getsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0) {
+    if (getsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0)
         std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
-    } else {
+    else
         std::cerr << "Failed to get SO_REUSEADDR option." << std::endl;
-    }
     return this->_server_sock;
 }
 
+/**
+ * @brief assigns address to socket
+ * 
+ * @param none
+ * 
+ * @return int 
+ */
 int Socket::bindSocket()
 {
     if (bind(this->_server_sock, reinterpret_cast<struct sockaddr*>(&this->_server_addr), sizeof(this->_server_addr)) < 0) 
@@ -57,6 +61,13 @@ int Socket::bindSocket()
     return 0;
 }
 
+/**
+ * @brief set a socket fd waiting for a connection | fd table set-up for poll function
+ * 
+ * @param none
+ * 
+ * @return int 
+ */
 int Socket::listenSocket(int backlog)
 {
     if (listen(this->_server_sock, backlog) < 0) 
@@ -107,11 +118,11 @@ void Socket::closeSocket() {
     }
 }
 /**
- * @brief Construct a new Response:: Response object
+ * @brief send a new response
  * 
  * @param target, data, data_len
  * 
- * @return nbr_bits or -1
+ * @return int
  */
 int Socket::sendData(int target_sock, const char *data, unsigned int len)
 {
@@ -127,11 +138,11 @@ int Socket::sendData(int target_sock, const char *data, unsigned int len)
 }
 
 /**
- * @brief Construct a new Response:: Response object
+ * @brief receive a new call
  * 
  * @param target, data, data_len
  * 
- * @return nbr_bits or -1
+ * @return int 
  */
 int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
 {
@@ -157,16 +168,28 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
     return ss.str();
 }
 
-int Socket::getSocketFD() const {
+int Socket::getPort()
+{
+    return this->_port;
+}
+
+
+int Socket::getSocketFD() const 
+{
     return this->_server_sock;
 }
 
+/**
+ * @brief use the poll function
+ * 
+ * @param none
+ * 
+ * @return int
+ */
 int Socket::server_poll()
 {
     int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
     if (event_count < 0)
-    {
         std::cerr << "Error\n Poll failed" << std::endl;
-    }
     return event_count;
 }
