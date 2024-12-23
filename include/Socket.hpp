@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <poll.h>
+#include <cerrno>
 
 class Socket 
 {
@@ -41,4 +42,5 @@ class Socket
         /*gestion poll*/
         struct pollfd _pfd;
 };
+int init_server(Socket &server);
 

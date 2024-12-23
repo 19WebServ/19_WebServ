@@ -193,3 +193,18 @@ int Socket::server_poll()
         std::cerr << "Error\n Poll failed" << std::endl;
     return event_count;
 }
+
+/**
+ * @brief server initialization
+ * 
+ * @param Socket_instance
+ * 
+ * @return int 
+ */
+int init_server(Socket &server) 
+{
+    if (server.createSocket() < 0 || server.bindSocket() < 0 || server.listenSocket() < 0) 
+        return 1;
+    std::cout << "Server is listening on port " << server.getPort() << "\n"<< std::endl;
+    return 0;
+}
