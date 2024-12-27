@@ -41,8 +41,8 @@ int processing_request(char *buffer, int bytes_receiv, Socket &server, int clien
         return 0;
     }
     std::string htmlContent;
-    if (request.find("GET /a_propos.html") != std::string::npos)
-        htmlContent = readFile("pages_html/a_propos.html");
+    if (request.find("GET /televers.html") != std::string::npos)
+        htmlContent = readFile("pages_html/televers.html");
     else if (request.find("GET /contact.html") != std::string::npos)
         htmlContent = readFile("pages_html/contact.html");
     else if (request.find("GET /service.html") != std::string::npos)

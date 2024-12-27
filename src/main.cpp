@@ -4,7 +4,6 @@
 
 #define MAX_CLIENTS 100
 
-
 /**
  * @brief request client
  * 
