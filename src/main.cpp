@@ -10,7 +10,7 @@
  * @return int 
  */
 int main(int argc, char **argv) {
-    std::string file = "default.conf";
+    std::string file = "./config/example.conf";
     if (argc == 2) {
         file = argv[1];
     }

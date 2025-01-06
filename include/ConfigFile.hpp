@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2024/12/20 15:20:24 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/06 12:05:51 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,29 +16,29 @@
 # include <iostream>
 # include <vector>
 # include <fstream>
-# include <sstream>
 # include <exception>
-// # include "./ServerConfig.hpp"
+# include "./ServerConfig.hpp"
 
 class ConfigFile
 {
 private:
     //-----ATTRIBUTES-----//
-    // std::vector<ServerConfig> _servers;
+    std::vector<ServerConfig> _servers;
     std::vector<std::string> _serversConfigStr;
 
     //-----METHODS-----//
     void fileInStr(const std::string &, std::string &);
     std::string cleanLine(std::string);
-    void SplitStr(std::string &);
-    void parseVect();
+    void splitStr(std::string &);
+    void parseServer(std::string);
+    std::string trimLine(std::string &, char);
     
 public:
     ConfigFile(const std::string &);
     ~ConfigFile();
+    
+    friend std::ostream& operator<<(std::ostream& os, const ConfigFile& obj);
 };
-
-
 
 
 #endif

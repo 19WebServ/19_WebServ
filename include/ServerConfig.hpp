@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2024/12/18 17:53:02 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/06 12:10:07 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <iostream>
 # include <vector>
 # include <map>
+# include <sstream>
 
 struct Route {
     std::string path;
@@ -33,19 +34,30 @@ struct Route {
 class ServerConfig
 {
 private:
-    std::string host;
-    int port;
-    std::string serverName;
-
-    std::map<int, std::string> defaultErrorPages;
-
-    int clientBodyLimit;
-
-    std::vector<Route> routes;
+    std::vector<int> _port;
+    std::vector<std::string> _serverName;
+    std::map<int, std::string> _errorPages;
+    int _clientBodyLimit;
+    std::string _root;
+    std::string _index;
+    std::vector<Route> _routes;
 
 public:
-    ServerConfig(const std::string &);
+    ServerConfig();
     ~ServerConfig();
+
+    void extractPort(std::string);
+    void extractServerName(std::string);
+    void extractErrorPage(std::string);
+    void extractMaxBodySize(std::string);
+    void extractRooT(std::string);
+    void extractIndex(std::string);
+    void extractLacoation(std::string);
+
+    friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 };
+
+bool areOnlyDigits(std::string);
+bool isValidServerName(std::string);
 
 #endif

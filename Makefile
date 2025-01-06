@@ -1,12 +1,8 @@
 NAME = webserv
 
-ifeq ($(shell uname), Darwin)
-    CXX = /opt/homebrew/bin/g++-14
-else
-    CXX = g++
-endif
+CXX = g++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 CPPFLAGS += -I./include
 
 SRC_DIR = src
