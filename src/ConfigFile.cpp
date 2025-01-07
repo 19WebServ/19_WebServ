@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/06 12:10:26 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/06 18:05:43 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,13 @@
 ConfigFile::ConfigFile(const std::string &configFile)
 {
     std::string configStr = "";
+    std::vector<std::string> blockStrs;
     
     fileInStr(configFile, configStr);
     while (!configStr.empty())
-        splitStr(configStr);
-    for (size_t i(0); i < _serversConfigStr.size(); i++)
-        parseServer(_serversConfigStr[i]);
+        splitStr(configStr, blockStrs);
+    for (size_t i(0); i < blockStrs.size(); i++)
+        parseServer(blockStrs[i]);
     
 }
 
@@ -60,7 +61,7 @@ std::string ConfigFile::cleanLine(std::string line)
 }
 
 // Split the string by server and check for brackets, after this we are left with one vector of strings, each string is all the settings for one server.
-void ConfigFile::splitStr(std::string &configStr)
+void ConfigFile::splitStr(std::string &configStr, std::vector<std::string> &blockStrs)
 {
     std::istringstream line;
     std::string word;
@@ -70,7 +71,7 @@ void ConfigFile::splitStr(std::string &configStr)
     line.str(configStr);
     getline(line, word, ' ');
     if (word != "server")
-        throw std::runtime_error("Config file");
+        throw std::runtime_error("Missing 'server' keyword.");
     getline(line, word, ' ');
     if (word != "{")
         throw std::runtime_error("Must open brackets after declaring the server.");
@@ -89,7 +90,7 @@ void ConfigFile::splitStr(std::string &configStr)
         throw std::runtime_error("Missing bracket(s)");
     else {
         configStr = configStr.substr(tempStr.size() + static_cast<std::string>("server ").size() + 4);
-        _serversConfigStr.push_back(tempStr);
+        blockStrs.push_back(tempStr);
     }
 }
 
@@ -135,24 +136,24 @@ void ConfigFile::parseServer(std::string serverStr)
         case 4:
             /* root */
             settings = trimLine(serverStr, ';');
-            server.extractRooT(settings);
+            // server.extractRooT(settings);
             break;
         case 5:
             /* index */
             settings = trimLine(serverStr, ';');
-            server.extractIndex(settings);
+            // server.extractIndex(settings);
             break;
         case 6:
             /* routes */
             settings = trimLine(serverStr, '}');
-            server.extractLacoation(settings);
+            // server.extractLacoation(settings);
             break;
         
         default:
             throw std::runtime_error(word + ": unknown keyword");
             break;
         }
-        std::cout << settings << std::endl;
+        // std::cout << settings << std::endl;
         line.str(serverStr);
     }
     _servers.push_back(server);

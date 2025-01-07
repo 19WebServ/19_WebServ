@@ -54,10 +54,10 @@ void ServerConfig::extractServerName(std::string setting)
     ss.str(setting);
     getline(ss, word, ' ');
     while (getline(ss, word, ' ')) {
-        if (isValidServerName(word))
+        // if (isValidServerName(word))
             _serverName.push_back(word);
-        else
-            throw std::runtime_error(word + " : invalid server name.");
+        // else
+        //     throw std::runtime_error(word + " : invalid server name.");
     }
 }
 
@@ -96,6 +96,38 @@ void ServerConfig::extractMaxBodySize(std::string setting)
         throw std::runtime_error(word + " : invalid maximum body size");
 }
 
+void ServerConfig::extractRoot(std::string setting)
+{
+    std::istringstream ss;
+    std::string word;
+
+    ss.str(setting);
+    getline(ss, word, ' ');
+    getline(ss, word, ' ');
+    if (!ss.eof())
+        throw std::runtime_error("More than 1 error page.");
+    _root = word;
+}
+
+void ServerConfig::extractIndex(std::string setting)
+{
+    std::istringstream ss;
+    std::string word;
+
+    ss.str(setting);
+    getline(ss, word, ' ');
+    getline(ss, word, ' ');
+    if (!ss.eof())
+        throw std::runtime_error("More than 1 error page.");
+    _index = word;
+}
+
+// void ServerConfig::extractLacoation(std::string setting)
+// {
+
+// }
+
+
 /* -----UTILS----- */
 
 // Check if the string passed as parameter is constitued only by digits.
@@ -109,14 +141,34 @@ bool areOnlyDigits(std::string nb)
 }
 
 // Check if the name passed as parameter is valid or not (can only caintain letters, numbers or '-').
-bool isValidServerName(std::string name)
+// bool isValidServerName(std::string name)
+// {
+//     for (int i(0); name[i]; i++) {
+//         if ((name[i] < 'a' || name[i] > 'z') && !isdigit(name[i]) && name[i] != '-')
+//             return false;
+//     }
+//     // Checks en plus a faire : verifier aue le - n'est pas au debut ni a la fin et prendre en compte le www. et le .com
+//     return true;
+// }
+
+bool isDir(std::string path)
 {
-    for (int i(0); name[i]; i++) {
-        if ((name[i] < 'a' || name[i] > 'z') && !isdigit(name[i]) && name[i] != '-')
-            return false;
-    }
-    // Checks en plus a faire : verifier aue le - n'est pas au debut ni a la fin et prendre en compte le www. et le .com
-    return true;
+    struct stat sb;
+ 
+    if (stat(path.c_str(), &sb) == 0)
+        return true;
+    else
+        return false;
+}
+
+bool isFile(std::string path)
+{
+    struct stat sb;
+ 
+    if (stat(path.c_str(), &sb) == 0 && !(sb.st_mode & S_IFDIR))
+        return true;
+    else
+        return false;
 }
 
 std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
