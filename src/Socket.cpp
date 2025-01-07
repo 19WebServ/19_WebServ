@@ -1,5 +1,6 @@
 #include "../include/Socket.hpp"
 #include <poll.h>
+#include <fcntl.h>
 
 Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY) : _port(port)
 {
@@ -79,6 +80,12 @@ int Socket::listenSocket(int backlog)
     this->_pfd.events = POLLIN;
     this->_pfd.revents = 0;
     this->_poll_fds.push_back(this->_pfd);
+
+    if (fcntl(this->_server_sock, F_SETFL, O_NONBLOCK) < 0)
+    {
+        std::cerr << "Error\nFailed non-blocking mode" << std::endl;
+        return -1;
+    }
     return 0;
 }
 
