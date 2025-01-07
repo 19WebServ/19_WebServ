@@ -10,9 +10,9 @@ INC_DIR = include
 OBJ_DIR = obj
 
 SRCS =	$(SRC_DIR)/main.cpp \
-		$(SRC_DIR)/Server.cpp \
-		$(SRC_DIR)/Request.cpp \
-		$(SRC_DIR)/Response.cpp \
+		$(SRC_DIR)/Socket.cpp \
+		$(SRC_DIR)/Poll.cpp \
+		$(SRC_DIR)/Handle_client.cpp \
 		$(SRC_DIR)/ConfigFile.cpp \
 		$(SRC_DIR)/ServerConfig.cpp \
 
