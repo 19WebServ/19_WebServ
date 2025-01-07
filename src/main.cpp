@@ -1,12 +1,8 @@
-#include "../include/Poll.hpp"
-#include "../include/Handle_client.hpp"
-#include <vector>
-
-#define MAX_CLIENTS 100
+#include <iostream>
 #include "../include/ConfigFile.hpp"
 
 /**
- * @brief request client
+ * @brief 
  * 
  * @param argc 
  * @param argv 
@@ -28,7 +24,7 @@ int main(int argc, char **argv) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    server.closeSocket();
+
     return 0;
 }
 
