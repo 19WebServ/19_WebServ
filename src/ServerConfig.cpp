@@ -188,3 +188,8 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
     
     return os;
 }
+
+std::vector<int> ServerConfig::getPorts()
+{
+    return this->_port;
+}

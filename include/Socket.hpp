@@ -14,33 +14,24 @@
 class Socket 
 {
     public:
-        Socket(int port, unsigned int ip);
+        Socket(const std::vector<int> &ports);
         ~Socket();
 
-        int     createSocket();
-        int     bindSocket();
-        int     listenSocket(int backlog = 5); //backlog -> nombre deconnexion en attente pouvant etre géré
-        int     acceptConnection();
-        void    closeSocket();
-
-        int     getPort();
-        int     sendData(int target_sock, const char *data, unsigned int len);
-        int     receiveData(int target_sock, char *buffer, unsigned int len);
-        int     getSocketFD() const;
-
-        std::string getClientIP(struct sockaddr_in *client_addr);
-
-        int server_poll();
-        std::vector<pollfd> _poll_fds;
-
+        void        launchServer();
 
     private:
-        int _server_sock;
-        const int _port;
-        struct sockaddr_in _server_addr;
+        std::vector<int> _ports;
+        std::vector<int> _serverSocks;
+        std::vector<pollfd> _poll_fds;
+        
 
-        /*gestion poll*/
-        struct pollfd _pfd;
+        void        closeFds(std::vector<int>serverSocks);
+        void        acceptConnection(int serverSock);
+        void        handleClient(int clientFd);
+        std::string getClientIP(struct sockaddr_in *client_addr);
+        std::string readFile(const char *filename); 
+        int         processingRequest(char *buffer, int bytes_receive, int client);
+        int         sendData(int target_sock, const char *data, unsigned int len);
+        int         receiveData(int target_sock, char *buffer, unsigned int len);
 };
-int init_server(Socket &server);
 

@@ -56,6 +56,8 @@ public:
     void extractIndex(std::string);
     // void extractLacoation(std::string);
 
+    std::vector<int> getPorts();
+
     friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 };
 

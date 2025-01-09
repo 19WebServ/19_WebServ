@@ -1,100 +1,249 @@
 #include "../include/Socket.hpp"
 #include <poll.h>
 #include <fcntl.h>
+#include <fstream>
 
-Socket::Socket(int port = 8080, unsigned int ip = INADDR_ANY) : _port(port)
+Socket::Socket(const std::vector<int> &ports) : _ports(ports)
 {
-    this->_server_sock = -1;
-    memset(&this->_server_addr, 0, sizeof(this->_server_addr));
-    this->_server_addr.sin_family = AF_INET;
-    this->_server_addr.sin_port = htons(_port);
-    this->_server_addr.sin_addr.s_addr = htonl(ip);
+    for (size_t i = 0; i < this->_ports.size(); i ++)
+    {
+        int serverSock = socket(AF_INET, SOCK_STREAM, 0);
+        if (serverSock < 0)
+        {
+            std::cerr<< "Error\n!! Socket creation failure !!" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        int opt = 1;
+        if (setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+        {
+            std::cerr << "Error\nFailed to set socket options" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        int current_opt;
+        socklen_t opt_len = sizeof(current_opt);
+        if (getsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0)
+            std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
+        else
+            std::cerr << "Failed to get SO_REUSEADDR option." << std::endl;
+        sockaddr_in serverAddr;
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_port = htons(this->_ports[i]);
+        serverAddr.sin_addr.s_addr = htons(INADDR_ANY);
+        if (bind(serverSock, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) < 0) 
+        {
+            std::cerr << "Error\nSocket binding failure" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        if (listen(serverSock, SOMAXCONN) < 0) 
+        {
+            std::cerr << "Error\nSocket wiretap failure" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        if (fcntl(serverSock, F_SETFL, O_NONBLOCK) < 0)
+        {
+            std::cerr << "Error\nFailed non-blocking mode" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        struct pollfd serverPollFd;
+        serverPollFd.fd = serverSock;
+        serverPollFd.events = POLLIN;
+
+        this->_poll_fds.push_back(serverPollFd);
+        this->_serverSocks.push_back(serverSock);
+    }
 }
 
 Socket::~Socket()
 {
-    this->closeSocket();
+    closeFds(this->_serverSocks);
 }
-/**
- * @brief Create a new Socket | set Socket_option |  make addresses reusable
- * 
- * @param none
- * 
- * @return int 
- */
-int Socket::createSocket()
+
+void Socket::closeFds(std::vector<int>serverSocks)
 {
-    this->_server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (this->_server_sock < 0) 
+    for (size_t i = 0; i < serverSocks.size(); i++)
     {
-        std::cerr << "Error\nSocket creation failure" << std::endl;
-        return -1;
+        if (serverSocks[i] >= 0)
+        {
+            int error = 0;
+            socklen_t len = sizeof(error);
+            if (getsockopt(serverSocks[i], SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0)
+                std::cerr << "Socket error before closing: " << strerror(error) << std::endl;
+            close(serverSocks[i]);
+        }
     }
-    int opt = 1;
-    if (setsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+    std::cerr<< "All server sockets closed" << std::endl;
+}
+
+// void Socket::launchServer()
+// {
+//     while (1)
+//     {
+//         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
+//         if (event_count < 0)
+//         {
+//             std::cerr << "Error\n Poll failed" << std::endl;
+//             closeFds(this->_serverSocks);
+//         }
+//         for (size_t i = 0; i < this->_poll_fds.size(); i++)
+//         {
+//             if (this->_poll_fds[i].revents & POLLIN)
+//             {
+//                 bool newConnection = false;
+//                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
+//                 {
+//                     if (this->_poll_fds[i].fd == this->_serverSocks[j])
+//                     {
+//                         acceptConnection(this->_serverSocks[j]);
+//                         newConnection = true;
+//                         break;
+//                     }
+//                 }
+//                 if (newConnection == false)
+//                     handleClient(this->_poll_fds[i].fd);
+//             }
+//         }
+        
+//     }
+// }
+
+void Socket::launchServer()
+{
+    while (1)
     {
-        std::cerr << "Error\nFailed to set socket options" << std::endl;
-        return -1;
+        int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
+        if (event_count < 0)
+        {
+            std::cerr << "Error: Poll failed" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+
+        for (size_t i = 0; i < this->_poll_fds.size(); i++)
+        {
+            // Si un événement est détecté sur ce descripteur
+            if (this->_poll_fds[i].revents & POLLIN)
+            {
+                // Vérifier si c'est un socket serveur (nouvelle connexion)
+                if (std::find(this->_serverSocks.begin(), this->_serverSocks.end(), this->_poll_fds[i].fd) != this->_serverSocks.end())
+                {
+                    // Nouvelle connexion
+                    acceptConnection(this->_poll_fds[i].fd);
+                }
+                else
+                {
+                    // Gestion d'un client existant
+                    handleClient(this->_poll_fds[i].fd);
+                }
+            }
+        }
     }
-    int current_opt;
-    socklen_t opt_len = sizeof(current_opt);
-    if (getsockopt(this->_server_sock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0)
-        std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
+}
+
+void    Socket::handleClient(int clientFd)
+{
+    char buffer[1024];
+    int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
+    if (bytes_receiv > 0)
+    {
+        if (this->processingRequest(buffer, bytes_receiv, clientFd))
+            return ;
+    }
+    if (bytes_receiv <= 0) 
+    {
+        if (bytes_receiv == 0) 
+            std::cout << "Client disconnected" << std::endl;
+        else if (errno != EWOULDBLOCK && errno != EAGAIN)
+            std::cerr << "Failed to receive data from client" << std::endl;
+
+        close(clientFd);
+        for (size_t k = 0; k < this->_poll_fds.size(); ++k)
+        {
+            if (this->_poll_fds[k].fd == clientFd)
+            {
+                this->_poll_fds.erase(this->_poll_fds.begin() + k);
+                break;
+            }
+        }
+    }
+}
+
+std::string Socket::readFile(const char *filename) 
+{
+    std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!file.is_open())
+        return "";
+
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::string buffer(size, ' ');
+    if (!file.read(&buffer[0], size))
+        return "";
+    file.close();
+    return buffer;
+}
+
+int Socket::processingRequest(char *buffer, int bytes_receive, int client)
+{
+    buffer[bytes_receive] = '\0';
+    std::string request(buffer);
+    if (request.find("GET /favicon.ico") != std::string::npos)
+        return 0;
+    std::string htmlContent;
+    if (request.find("GET /televers.html") != std::string::npos)
+        htmlContent = readFile("pages_html/televers.html");
+    else if (request.find("GET /contact.html") != std::string::npos)
+        htmlContent = readFile("pages_html/contact.html");
+    else if (request.find("GET /service.html") != std::string::npos)
+        htmlContent = readFile("pages_html/service.html");
     else
-        std::cerr << "Failed to get SO_REUSEADDR option." << std::endl;
-    return this->_server_sock;
-}
+        htmlContent = readFile("pages_html/index.html");
 
-/**
- * @brief assigns address to socket
- * 
- * @param none
- * 
- * @return int 
- */
-int Socket::bindSocket()
-{
-    if (bind(this->_server_sock, reinterpret_cast<struct sockaddr*>(&this->_server_addr), sizeof(this->_server_addr)) < 0) 
+    std::cout << "Received from client:\n" << buffer << std::endl;
+
+    if (htmlContent.empty()) 
     {
-        std::cerr << "Error\nSocket binding failure" << std::endl;
-        return -1;
+        std::cerr << "Failed to read index.html." << std::endl;
+        return 1;
+    }
+
+    std::ostringstream oss;
+    oss << htmlContent.size();
+    std::string contentLength = oss.str();
+
+    std::string response = 
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: " + contentLength + "\r\n"
+        "\r\n" +
+        htmlContent;
+
+    int total_sent = 0;
+    while (total_sent < (int)response.size())
+    {
+        int bytes_sent = this->sendData(client, response.c_str() + total_sent, response.size() - total_sent);
+        if (bytes_sent > 0)
+            total_sent += bytes_sent;
+        else if (errno != EWOULDBLOCK && errno != EAGAIN)
+        {
+            std::cerr << "Failed to send response to client." << std::endl;
+            break;
+        }
     }
     return 0;
 }
 
-/**
- * @brief set a socket fd waiting for a connection | fd table set-up for poll function
- * 
- * @param none
- * 
- * @return int 
- */
-int Socket::listenSocket(int backlog)
+void Socket::acceptConnection(int serverSock) 
 {
-    if (listen(this->_server_sock, backlog) < 0) 
-    {
-        std::cerr << "Error\nSocket wiretap failure" << std::endl;
-        return -1;
-    }
-    this->_pfd.fd = this->getSocketFD();
-    this->_pfd.events = POLLIN;
-    this->_pfd.revents = 0;
-    this->_poll_fds.push_back(this->_pfd);
-
-    if (fcntl(this->_server_sock, F_SETFL, O_NONBLOCK) < 0)
-    {
-        std::cerr << "Error\nFailed non-blocking mode" << std::endl;
-        return -1;
-    }
-    return 0;
-}
-
-int Socket::acceptConnection() {
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
-    int client_sock = accept(this->_server_sock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
+    int client_sock = accept(serverSock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
     if (client_sock >= 0) 
     {
+       if (fcntl(client_sock, F_SETFL, O_NONBLOCK) < 0)
+        {
+            std::cerr << "Error\nFailed non-blocking mode" << std::endl;
+            closeFds(this->_serverSocks);
+        }
         std::string clientIP = getClientIP(&client_addr);
         std::cout << "Client connected: " << clientIP << std::endl;
 
@@ -106,31 +255,17 @@ int Socket::acceptConnection() {
         {
             std::cerr << "Client socket has an error: " << strerror(error) << std::endl;
             close(client_sock);
-            return -1;
         }
+        struct pollfd clientFd;
+
+        clientFd.fd = client_sock;
+        clientFd.events = POLLIN;
+        this->_poll_fds.push_back(clientFd);
     } 
     else 
         std::cerr << "Error\nFailed to accept client connection." << std::endl;
-    return client_sock;
 }
 
-void Socket::closeSocket() {
-    if (this->_server_sock >= 0)
-    {
-        int error = 0;
-        socklen_t len = sizeof(error);
-        if (getsockopt(this->_server_sock, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0) 
-            std::cerr << "Socket error before closing: " << strerror(error) << std::endl;
-        close(this->_server_sock);
-    }
-}
-/**
- * @brief send a new response
- * 
- * @param target, data, data_len
- * 
- * @return int
- */
 int Socket::sendData(int target_sock, const char *data, unsigned int len)
 {
     if (target_sock < 0)
@@ -144,13 +279,6 @@ int Socket::sendData(int target_sock, const char *data, unsigned int len)
     return res;
 }
 
-/**
- * @brief receive a new call
- * 
- * @param target, data, data_len
- * 
- * @return int 
- */
 int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
 {
     if (target_sock < 0)
@@ -173,45 +301,4 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
        << static_cast<int>(ip[2]) << "."
        << static_cast<int>(ip[3]);
     return ss.str();
-}
-
-int Socket::getPort()
-{
-    return this->_port;
-}
-
-
-int Socket::getSocketFD() const 
-{
-    return this->_server_sock;
-}
-
-/**
- * @brief use the poll function
- * 
- * @param none
- * 
- * @return int
- */
-int Socket::server_poll()
-{
-    int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
-    if (event_count < 0)
-        std::cerr << "Error\n Poll failed" << std::endl;
-    return event_count;
-}
-
-/**
- * @brief server initialization
- * 
- * @param Socket_instance
- * 
- * @return int 
- */
-int init_server(Socket &server) 
-{
-    if (server.createSocket() < 0 || server.bindSocket() < 0 || server.listenSocket() < 0) 
-        return 1;
-    std::cout << "Server is listening on port " << server.getPort() << "\n"<< std::endl;
-    return 0;
 }

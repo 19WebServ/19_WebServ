@@ -35,6 +35,8 @@ private:
 public:
     ConfigFile(const std::string &);
     ~ConfigFile();
+
+    std::vector<ServerConfig> getServer();
     
     friend std::ostream& operator<<(std::ostream& os, const ConfigFile& obj);
 };

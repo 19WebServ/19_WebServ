@@ -179,3 +179,8 @@ std::ostream& operator<<(std::ostream& os, const ConfigFile& obj) {
     }
     return os;
 }
+
+std::vector<ServerConfig> ConfigFile::getServer()
+{
+    return this->_servers;
+}
