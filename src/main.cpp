@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
         }
 
         // Lancer les serveurs avec la classe Socket
-        Socket socketServer(ports);
+        Socket socketServer(ports, servers);
         socketServer.launchServer();
 
     } catch (const std::exception &e) {

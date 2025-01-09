@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <fstream>
 
-Socket::Socket(const std::vector<int> &ports) : _ports(ports)
+Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server) : _ports(ports) , _servers(server)
 {
     for (size_t i = 0; i < this->_ports.size(); i ++)
     {
@@ -74,38 +74,6 @@ void Socket::closeFds(std::vector<int>serverSocks)
     std::cerr<< "All server sockets closed" << std::endl;
 }
 
-// void Socket::launchServer()
-// {
-//     while (1)
-//     {
-//         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
-//         if (event_count < 0)
-//         {
-//             std::cerr << "Error\n Poll failed" << std::endl;
-//             closeFds(this->_serverSocks);
-//         }
-//         for (size_t i = 0; i < this->_poll_fds.size(); i++)
-//         {
-//             if (this->_poll_fds[i].revents & POLLIN)
-//             {
-//                 bool newConnection = false;
-//                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
-//                 {
-//                     if (this->_poll_fds[i].fd == this->_serverSocks[j])
-//                     {
-//                         acceptConnection(this->_serverSocks[j]);
-//                         newConnection = true;
-//                         break;
-//                     }
-//                 }
-//                 if (newConnection == false)
-//                     handleClient(this->_poll_fds[i].fd);
-//             }
-//         }
-        
-//     }
-// }
-
 void Socket::launchServer()
 {
     while (1)
@@ -113,30 +81,65 @@ void Socket::launchServer()
         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
         if (event_count < 0)
         {
-            std::cerr << "Error: Poll failed" << std::endl;
+            std::cerr << "Error\n Poll failed" << std::endl;
             closeFds(this->_serverSocks);
         }
-
         for (size_t i = 0; i < this->_poll_fds.size(); i++)
         {
-            // Si un événement est détecté sur ce descripteur
             if (this->_poll_fds[i].revents & POLLIN)
             {
-                // Vérifier si c'est un socket serveur (nouvelle connexion)
-                if (std::find(this->_serverSocks.begin(), this->_serverSocks.end(), this->_poll_fds[i].fd) != this->_serverSocks.end())
+                bool newConnection = false;
+                for (size_t j = 0; j < this->_serverSocks.size(); j++)
                 {
-                    // Nouvelle connexion
-                    acceptConnection(this->_poll_fds[i].fd);
+                    if (this->_poll_fds[i].fd == this->_serverSocks[j])
+                    {
+                        acceptConnection(this->_serverSocks[j]);
+                        newConnection = true;
+                        break;
+                    }
                 }
-                else
+                if (newConnection == false)
                 {
-                    // Gestion d'un client existant
+                    std::cout<< "i = " << this->_serverSocks[1] << "-----" << std::endl;
                     handleClient(this->_poll_fds[i].fd);
                 }
             }
         }
+        
     }
 }
+
+// void Socket::launchServer()
+// {
+//     while (1)
+//     {
+//         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
+//         if (event_count < 0)
+//         {
+//             std::cerr << "Error: Poll failed" << std::endl;
+//             closeFds(this->_serverSocks);
+//         }
+
+//         for (size_t i = 0; i < this->_poll_fds.size(); i++)
+//         {
+//             // Si un événement est détecté sur ce descripteur
+//             if (this->_poll_fds[i].revents & POLLIN)
+//             {
+//                 // Vérifier si c'est un socket serveur (nouvelle connexion)
+//                 if (std::find(this->_serverSocks.begin(), this->_serverSocks.end(), this->_poll_fds[i].fd) != this->_serverSocks.end())
+//                 {
+//                     // Nouvelle connexion
+//                     acceptConnection(this->_poll_fds[i].fd);
+//                 }
+//                 else
+//                 {
+//                     // Gestion d'un client existant
+//                     handleClient(this->_poll_fds[i].fd);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void    Socket::handleClient(int clientFd)
 {
@@ -214,6 +217,8 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int client)
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/html\r\n"
         "Content-Length: " + contentLength + "\r\n"
+        "Connection: keep-alive\r\n"
+        "Keep-Alive: timeout=10000\r\n"
         "\r\n" +
         htmlContent;
 

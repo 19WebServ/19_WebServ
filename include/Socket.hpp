@@ -10,11 +10,12 @@
 #include <vector>
 #include <poll.h>
 #include <cerrno>
+#include "ConfigFile.hpp"
 
 class Socket 
 {
     public:
-        Socket(const std::vector<int> &ports);
+        Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server);
         ~Socket();
 
         void        launchServer();
@@ -23,7 +24,8 @@ class Socket
         std::vector<int> _ports;
         std::vector<int> _serverSocks;
         std::vector<pollfd> _poll_fds;
-        
+        std::vector<ServerConfig> _servers;
+
 
         void        closeFds(std::vector<int>serverSocks);
         void        acceptConnection(int serverSock);
