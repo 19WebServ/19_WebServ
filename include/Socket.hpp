@@ -11,6 +11,7 @@
 #include <poll.h>
 #include <cerrno>
 #include "ConfigFile.hpp"
+#include "Client.hpp"
 
 class Socket 
 {
@@ -18,18 +19,21 @@ class Socket
         Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server);
         ~Socket();
 
-        void        launchServer();
+        void            launchServer();
+        int             getPort(int index);
+        ServerConfig    getServer(int index);
 
     private:
         std::vector<int> _ports;
         std::vector<int> _serverSocks;
         std::vector<pollfd> _poll_fds;
         std::vector<ServerConfig> _servers;
+        std::vector<Client> _clients;
 
 
         void        closeFds(std::vector<int>serverSocks);
-        void        acceptConnection(int serverSock);
-        void        handleClient(int clientFd);
+        void        acceptConnection(int serverSock, int i);
+        void        handleClient(int &clientFd, Client &client);
         std::string getClientIP(struct sockaddr_in *client_addr);
         std::string readFile(const char *filename); 
         int         processingRequest(char *buffer, int bytes_receive, int client);

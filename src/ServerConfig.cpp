@@ -193,3 +193,8 @@ std::vector<int> ServerConfig::getPorts()
 {
     return this->_port;
 }
+
+size_t ServerConfig::getBodySize()
+{
+    return this->_clientBodyLimit;
+}

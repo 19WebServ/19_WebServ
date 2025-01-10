@@ -93,15 +93,21 @@ void Socket::launchServer()
                 {
                     if (this->_poll_fds[i].fd == this->_serverSocks[j])
                     {
-                        acceptConnection(this->_serverSocks[j]);
+
+                        acceptConnection(this->_serverSocks[j], i);
                         newConnection = true;
                         break;
                     }
                 }
                 if (newConnection == false)
                 {
-                    std::cout<< "i = " << this->_serverSocks[1] << "-----" << std::endl;
-                    handleClient(this->_poll_fds[i].fd);
+                    size_t k = 0;
+                    for (; k < this->_clients.size(); k++)
+                    {
+                        if (this->_clients[k].getClientFd() == this->_poll_fds[i].fd)
+                            break;
+                    }
+                    handleClient(this->_poll_fds[i].fd, this->_clients[k]);
                 }
             }
         }
@@ -109,41 +115,10 @@ void Socket::launchServer()
     }
 }
 
-// void Socket::launchServer()
-// {
-//     while (1)
-//     {
-//         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
-//         if (event_count < 0)
-//         {
-//             std::cerr << "Error: Poll failed" << std::endl;
-//             closeFds(this->_serverSocks);
-//         }
-
-//         for (size_t i = 0; i < this->_poll_fds.size(); i++)
-//         {
-//             // Si un événement est détecté sur ce descripteur
-//             if (this->_poll_fds[i].revents & POLLIN)
-//             {
-//                 // Vérifier si c'est un socket serveur (nouvelle connexion)
-//                 if (std::find(this->_serverSocks.begin(), this->_serverSocks.end(), this->_poll_fds[i].fd) != this->_serverSocks.end())
-//                 {
-//                     // Nouvelle connexion
-//                     acceptConnection(this->_poll_fds[i].fd);
-//                 }
-//                 else
-//                 {
-//                     // Gestion d'un client existant
-//                     handleClient(this->_poll_fds[i].fd);
-//                 }
-//             }
-//         }
-//     }
-// }
-
-void    Socket::handleClient(int clientFd)
+void    Socket::handleClient(int &clientFd, Client &client)
 {
-    char buffer[1024];
+    size_t i = client.getMaxBodySize();
+    char buffer[i];
     int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
     if (bytes_receiv > 0)
     {
@@ -156,7 +131,14 @@ void    Socket::handleClient(int clientFd)
             std::cout << "Client disconnected" << std::endl;
         else if (errno != EWOULDBLOCK && errno != EAGAIN)
             std::cerr << "Failed to receive data from client" << std::endl;
-
+        for (size_t k = 0; k < this->_clients.size(); k++)
+        {
+            if (this->_clients[k].getClientFd() == clientFd)
+            {
+                this->_clients.erase(this->_clients.begin() + k);
+                break;
+            }
+        }
         close(clientFd);
         for (size_t k = 0; k < this->_poll_fds.size(); ++k)
         {
@@ -237,8 +219,9 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int client)
     return 0;
 }
 
-void Socket::acceptConnection(int serverSock) 
+void Socket::acceptConnection(int serverSock, int i) 
 {
+    Client client(serverSock, i, this->getPort(i), this->getServer(i).getBodySize());
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_sock = accept(serverSock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
@@ -266,7 +249,11 @@ void Socket::acceptConnection(int serverSock)
         clientFd.fd = client_sock;
         clientFd.events = POLLIN;
         this->_poll_fds.push_back(clientFd);
-    } 
+        client.setClientFd(client_sock);
+        client.setIndexClientFd(this->_poll_fds.size() - 1);
+        client.setIp(getClientIP(&client_addr));
+        this->_clients.push_back(client);
+    }
     else 
         std::cerr << "Error\nFailed to accept client connection." << std::endl;
 }
@@ -306,4 +293,14 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
        << static_cast<int>(ip[2]) << "."
        << static_cast<int>(ip[3]);
     return ss.str();
+}
+
+int Socket::getPort(int i)
+{
+    return this->_ports[i];
+}
+
+ServerConfig Socket::getServer(int index)
+{
+    return this->_servers[index];
 }
