@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/06 18:04:26 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/09 19:11:55 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ private:
     std::string cleanLine(std::string);
     void splitStr(std::string &, std::vector<std::string> &);
     void parseServer(std::string);
-    std::string trimLine(std::string &, char);
     
 public:
     ConfigFile(const std::string &);

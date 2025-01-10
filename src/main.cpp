@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../include/Server.hpp"
+// #include "../include/Server.hpp"
 #include "../include/ConfigFile.hpp"
 
 /**
@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
 
     try {
         ConfigFile configFile(file);
+        std::cout << configFile << std::endl;
         // Server server(file);
         // server.run();
     } catch (const std::exception &e) {
