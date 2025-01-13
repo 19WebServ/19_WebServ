@@ -184,10 +184,10 @@ void ServerConfig::checkMissigValues()
 // Check if all the paths are valid and if we have the right permissions
 void ServerConfig::checkIfValidPath()
 {
-    if (Utils::isFile(_root + _index))
-        throw std::runtime_error("index is not a file.");
+    if (!Utils::isFile(_root + _index))
+        throw std::runtime_error("index " + _root + _index + " is not a file.");
     else if (!Utils::hasReadPermission((_root + _index).c_str()))
-        throw std::runtime_error("index file doesn't have read permission.");
+        throw std::runtime_error("index " + _root + _index + " file doesn't have read permission.");
     for (std::map<int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
         if (!Utils::isFile(_root + it->second))
             throw std::runtime_error("error page " + it->second + "is not a file.");
@@ -196,15 +196,15 @@ void ServerConfig::checkIfValidPath()
     }
     for (std::map<std::string, RouteSettings>::const_iterator it = _routes.begin(); it != _routes.end(); it++) {
         if (!Utils::isFile(it->second.root + it->second.index))
-            throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " is not a file.");
+            throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " is not a file.");
         else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
-            throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
-        if (!Utils::isFile(it->second.root + it->second.cgi))
-            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " is not a file.");
-        else if (!Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
-            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have read permission.");
-        else if (!Utils::hasExecutePermission((it->second.root + it->second.cgi).c_str()))
-            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have execute permission.");
+            throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
+        if (!it->second.cgi.empty() && !Utils::isFile(it->second.root + it->second.cgi))
+            throw std::runtime_error("CGI " + it->second.root + it->second.cgi + " in loaction block " + it->first + " is not a file.");
+        else if (!it->second.cgi.empty() && !Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.root + it->second.cgi + " in loaction block " + it->first + " doesn't have read permission.");
+        else if (!it->second.cgi.empty() && !Utils::hasExecutePermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.root + it->second.cgi + " in loaction block " + it->first + " doesn't have execute permission.");
     }
 }
 
@@ -236,7 +236,7 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
     return os;
 }
 
-std::vector<int> ServerConfig::getPorts()
+int ServerConfig::getPort()
 {
     return this->_port;
 }

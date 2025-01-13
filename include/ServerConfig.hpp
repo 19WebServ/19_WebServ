@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 13:45:53 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:51:01 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ public:
     void checkIfValidPath();
     void checkMissigValues();
 
-    std::vector<int>    getPorts();
+    int                 getPort();
     size_t              getBodySize();
 
     friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);

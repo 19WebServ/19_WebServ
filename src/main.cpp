@@ -51,10 +51,8 @@ int main(int argc, char **argv) {
         // Récupérer tous les ports
         std::vector<int> ports;
         for (size_t i = 0; i < servers.size(); i++) {
-            std::vector<int> serverPorts = servers[i].getPorts(); // Supposons que getPorts() renvoie un std::vector<int>
-            for (size_t j = 0; j < serverPorts.size(); j++) {
-                ports.push_back(serverPorts[j]); // Ajouter chaque port individuellement
-            }
+            int serverPorts = servers[i].getPort(); // Supposons que getPorts() renvoie un std::vector<int>
+                ports.push_back(serverPorts); // Ajouter chaque port individuellement
         }
 
         // Afficher les ports récupérés pour vérification
