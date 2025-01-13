@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 15:51:01 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 16:04:15 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,17 @@ public:
 
     int                 getPort();
     size_t              getBodySize();
+    std::vector<std::string> getServerNames();
+    std::string getErrorPage(int);
+    std::string getRoot();
+    std::string getIndex();
+    bool getLocationAllowedMethods(std::string, std::string);
+    std::string getLocationRoot(std::string);
+    bool getLocationDirectoryListing(std::string);
+    std::string getLocationIndex(std::string);
+    std::string getLocationRedirect(std::string);
+    std::string getLocationCgi(std::string);
+    
 
     friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 };

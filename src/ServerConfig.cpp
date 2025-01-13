@@ -236,6 +236,10 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
     return os;
 }
 
+
+
+// ------------------------GETTERS----------------------- //
+
 int ServerConfig::getPort()
 {
     return this->_port;
@@ -244,4 +248,88 @@ int ServerConfig::getPort()
 size_t ServerConfig::getBodySize()
 {
     return this->_clientBodyLimit;
+}
+
+std::vector<std::string> ServerConfig::getServerNames()
+{
+    return _serverName;
+}
+
+std::string ServerConfig::getErrorPage(int errorNo)
+{
+    std::map<int,std::string>::iterator it = _errorPages.find(errorNo);;
+
+    if (it != _errorPages.end())
+        return it->second;
+    else
+        return "";
+}
+
+std::string ServerConfig::getRoot()
+{
+    return _root;
+}
+
+std::string ServerConfig::getIndex()
+{
+    return _index;
+}
+
+bool ServerConfig::getLocationAllowedMethods(std::string location, std::string method)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end()) {
+        std::vector<std::string>::iterator it2 = std::find(it->second.methods.begin(), it->second.methods.end(), method);
+        if (it2 != it->second.methods.end())
+            return true;
+        else
+            return false;
+    }
+    else
+        return false;
+}
+
+std::string ServerConfig::getLocationRoot(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.root;
+    else
+        return "";
+}
+
+bool ServerConfig::getLocationDirectoryListing(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.directoryListing;
+    else
+        return "";
+}
+
+std::string ServerConfig::getLocationIndex(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.index;
+    else
+        return "";
+}
+
+std::string ServerConfig::getLocationRedirect(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.redirect;
+    else
+        return "";
+}
+
+std::string ServerConfig::getLocationCgi(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.cgi;
+    else
+        return "";
 }
