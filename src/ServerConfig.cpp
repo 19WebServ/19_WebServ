@@ -14,9 +14,10 @@
 
 ServerConfig::ServerConfig()
 {
-    _clientBodyLimit = 1000000;
-    _root = "/var/www/html";
-    _index = "index.html";
+    _port = 8080;
+    _clientBodyLimit = 1000;
+    _root = "";
+    _index = "";
 }
 
 ServerConfig::~ServerConfig()
@@ -32,17 +33,18 @@ void ServerConfig::extractPort(std::string setting)
 
     ss.str(setting);
     getline(ss, word, ' ');
-    while (getline(ss, word, ' ')) {
-        if (areOnlyDigits(word)) {
-            nb = atof(word.c_str());
-            if (nb < 1 || nb > 65535)
-                throw std::runtime_error(word + " : invalid port.");
-            else
-                _port.push_back(static_cast<int>(nb));
-        }
-        else
+    getline(ss, word, ' ');
+    if (word.empty())
+        throw std::runtime_error("missing port.");
+    if (Utils::areOnlyDigits(word)) {
+        nb = atof(word.c_str());
+        if (nb < 1024 || nb > 65535)
             throw std::runtime_error(word + " : invalid port.");
+        else
+            _port = static_cast<int>(nb);
     }
+    else
+        throw std::runtime_error(word + " : invalid port.");
 }
 
 // Check if the name is valid before pushing it to the _serveName vector.
@@ -53,12 +55,8 @@ void ServerConfig::extractServerName(std::string setting)
 
     ss.str(setting);
     getline(ss, word, ' ');
-    while (getline(ss, word, ' ')) {
-        // if (isValidServerName(word))
-            _serverName.push_back(word);
-        // else
-        //     throw std::runtime_error(word + " : invalid server name.");
-    }
+    while (getline(ss, word, ' '))
+        _serverName.push_back(word);
 }
 
 void ServerConfig::extractErrorPage(std::string setting)
@@ -70,15 +68,21 @@ void ServerConfig::extractErrorPage(std::string setting)
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
-    if (!areOnlyDigits(word) || atof(word.c_str()) < 400 || atof(word.c_str()) > 599)
-        throw std::runtime_error(word + " : invalid server name.");
+    if (word.empty())
+        throw std::runtime_error("missing error page.");
+    if (!Utils::areOnlyDigits(word) || atof(word.c_str()) < 400 || atof(word.c_str()) > 599)
+        throw std::runtime_error(word + " : invalid error status.");
     else {
         error = atof(word.c_str());
         getline(ss, word, ' ');
+        if (word.empty())
+            throw std::runtime_error("missing error page.");
         if (!ss.eof())
             throw std::runtime_error("More than 1 error page.");
-        // tester la page d'erreur
-        _errorPages[error] = word;
+        if (Utils::isPath(word))
+            _errorPages[error] = word;
+        else
+            _errorPages[error] = "/" + word;
     }
 }
 
@@ -90,7 +94,9 @@ void ServerConfig::extractMaxBodySize(std::string setting)
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
-    if (areOnlyDigits(word))
+    if (word.empty())
+        throw std::runtime_error("missing client max body size.");
+    if (Utils::areOnlyDigits(word))
         _clientBodyLimit = atof(word.c_str());
     else
         throw std::runtime_error(word + " : invalid maximum body size");
@@ -104,9 +110,18 @@ void ServerConfig::extractRoot(std::string setting)
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
+    if (word.empty())
+        throw std::runtime_error("missing root path.");
     if (!ss.eof())
-        throw std::runtime_error("More than 1 error page.");
-    _root = word;
+        throw std::runtime_error("More than 1 root.");
+    if (!Utils::isDir(word))
+        throw std::runtime_error("Invalid root.");
+    else if (!Utils::hasRootDirectoryAccess(word.c_str()))
+        throw std::runtime_error("Root directory does not have necessary access.");
+    if (word[word.size() - 1] == '/')
+        _root = word.substr(0, word.size() - 1);
+    else
+        _root = word;
 }
 
 void ServerConfig::extractIndex(std::string setting)
@@ -117,65 +132,86 @@ void ServerConfig::extractIndex(std::string setting)
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
+    if (word.empty())
+        throw std::runtime_error("missing index page.");
     if (!ss.eof())
         throw std::runtime_error("More than 1 error page.");
-    _index = word;
+    if (Utils::isPath(word))
+        _index = word;
+    else
+        _index = "/" + word;
 }
 
-// void ServerConfig::extractLacoation(std::string setting)
-// {
-
-// }
-
-
-/* -----UTILS----- */
-
-// Check if the string passed as parameter is constitued only by digits.
-bool areOnlyDigits(std::string nb)
+void ServerConfig::extractLocation(std::string setting)
 {
-    for (int i(0); nb[i]; i++) {
-        if (!isdigit(nb[i]))
-            return false;
+    RouteSettings locationSettings = {};
+    std::istringstream ss;
+    std::string word;
+    std::string locationSettingsStr;
+    std::string route;
+
+    ss.str(setting);
+    getline(ss, word, ' ');
+    getline(ss, word, ' ');
+    if (word.empty())
+        throw std::runtime_error("missing route.");
+    if (!Utils::isPath(word))
+        throw std::runtime_error("invalid route.");
+    route = word;
+    getline(ss, word, ' ');
+    if (word != "{")
+        throw std::runtime_error("missing open bracket after route declaration.");
+    locationSettingsStr = setting.substr(route.size() + 12);
+    _routes[route] = extractLocationSettings(locationSettingsStr);
+}
+
+void ServerConfig::checkMissigValues()
+{
+    if (_serverName.empty())
+        throw std::runtime_error("missing a server name.");
+    if (_root.empty())
+        throw std::runtime_error("missing a root directory.");
+    if (_index.empty())
+        throw std::runtime_error("missing index page.");
+    for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
+        if (it->second.root.empty())
+            it->second.root = _root;
+        if (it->second.index.empty())
+            throw std::runtime_error("missing index page in " + it->first + " location block.");
     }
-    return true;
 }
 
-// Check if the name passed as parameter is valid or not (can only caintain letters, numbers or '-').
-// bool isValidServerName(std::string name)
-// {
-//     for (int i(0); name[i]; i++) {
-//         if ((name[i] < 'a' || name[i] > 'z') && !isdigit(name[i]) && name[i] != '-')
-//             return false;
-//     }
-//     // Checks en plus a faire : verifier aue le - n'est pas au debut ni a la fin et prendre en compte le www. et le .com
-//     return true;
-// }
-
-bool isDir(std::string path)
+// Check if all the paths are valid and if we have the right permissions
+void ServerConfig::checkIfValidPath()
 {
-    struct stat sb;
- 
-    if (stat(path.c_str(), &sb) == 0)
-        return true;
-    else
-        return false;
-}
-
-bool isFile(std::string path)
-{
-    struct stat sb;
- 
-    if (stat(path.c_str(), &sb) == 0 && !(sb.st_mode & S_IFDIR))
-        return true;
-    else
-        return false;
+    if (Utils::isFile(_root + _index))
+        throw std::runtime_error("index is not a file.");
+    else if (!Utils::hasReadPermission((_root + _index).c_str()))
+        throw std::runtime_error("index file doesn't have read permission.");
+    for (std::map<int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
+        if (!Utils::isFile(_root + it->second))
+            throw std::runtime_error("error page " + it->second + "is not a file.");
+        else if (!Utils::hasReadPermission((_root + it->second).c_str()))
+            throw std::runtime_error("error page " + it->second + "doesn't have read permission.");
+    }
+    for (std::map<std::string, RouteSettings>::const_iterator it = _routes.begin(); it != _routes.end(); it++) {
+        if (!Utils::isFile(it->second.root + it->second.index))
+            throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " is not a file.");
+        else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
+            throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
+        if (!Utils::isFile(it->second.root + it->second.cgi))
+            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " is not a file.");
+        else if (!Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have read permission.");
+        else if (!Utils::hasExecutePermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have execute permission.");
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
-    os << "Listening to ports : ";
-    for (size_t i(0); i < obj._port.size(); i++)
-        os << obj._port[i] << " ";
-    os << "\nServer name(s) : ";
+    os << "Listening to port : ";
+    os << obj._port << std::endl;
+    os << "Server name(s) : ";
     for (size_t i(0); i < obj._serverName.size(); i++)
         os << obj._serverName[i] << " ";
     os << "\nError pages : " << std::endl;
@@ -185,7 +221,18 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
     os << "Max body size : " << obj._clientBodyLimit << std::endl;
     os << "Root : " << obj._root << std::endl;
     os << "Index : " << obj._index << std::endl;
-    
+    for (std::map<std::string, RouteSettings>::const_iterator it = obj._routes.begin(); it != obj._routes.end(); it++) {
+        os << "Route : " << it->first << std::endl << "{" << std::endl;
+        os << "Methods : ";
+        for (size_t i(0); i < it->second.methods.size(); i++)
+            os << it->second.methods[i] << " ";
+        os << std::endl;
+        os << "Root : " << it->second.root << std::endl;
+        os << "Index : " << it->second.index << std::endl;
+        os << "Dir listing : " << it->second.directoryListing << std::endl;
+        os << "Redir : " << it->second.redirect << std::endl;
+        os << "CGI : " << it->second.cgi << std::endl << "}" << std::endl; 
+    }
     return os;
 }
 

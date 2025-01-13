@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/06 18:23:15 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 13:45:53 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,31 +18,30 @@
 # include <map>
 # include <sstream>
 # include <cstdlib>
-# include <sys/stat.h>
+# include "./Utils.hpp"
+# include <algorithm>
 
-struct Route {
-    std::string path;
+
+struct RouteSettings {
     std::vector<std::string> methods;
     std::string root;
     bool directoryListing;
-    std::string defaultFile;
-    std::string redirectTo;
-    std::string cgiHandler;
-    std::vector<std::string> cgiExtensions;
-    std::string uploadDir;
+    std::string index;
+    std::string redirect;
+    std::string cgi;
 };
 
 
 class ServerConfig
 {
 private:
-    std::vector<int> _port;
+    int _port;
     std::vector<std::string> _serverName;
     std::map<int, std::string> _errorPages;
     size_t _clientBodyLimit;
     std::string _root;
     std::string _index;
-    std::vector<Route> _routes;
+    std::map<std::string, RouteSettings> _routes;
 
 public:
     ServerConfig();
@@ -54,7 +53,9 @@ public:
     void extractMaxBodySize(std::string);
     void extractRoot(std::string);
     void extractIndex(std::string);
-    // void extractLacoation(std::string);
+    void extractLocation(std::string);
+    void checkIfValidPath();
+    void checkMissigValues();
 
     std::vector<int>    getPorts();
     size_t              getBodySize();
@@ -62,7 +63,12 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 };
 
-bool areOnlyDigits(std::string);
-// bool isValidServerName(std::string);
+RouteSettings extractLocationSettings(std::string);
+void extractRouteRoot(RouteSettings &, std::string);
+void extractRouteIndex(RouteSettings &, std::string);
+void extractRouteAutoindex(RouteSettings &, std::string);
+void extractRouteMethod(RouteSettings &, std::string);
+void extractRouteCgi(RouteSettings &, std::string);
+void extractRouteRedir(RouteSettings &, std::string);
 
 #endif
