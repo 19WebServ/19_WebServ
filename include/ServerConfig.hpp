@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/10 19:01:29 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 13:45:53 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ public:
     void extractIndex(std::string);
     void extractLocation(std::string);
     void checkIfValidPath();
+    void checkMissigValues();
 
     friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 };

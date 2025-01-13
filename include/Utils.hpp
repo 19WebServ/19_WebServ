@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/09 19:08:52 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 13:41:18 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <iostream>
 # include <sys/stat.h>
 # include <sstream>
+# include <unistd.h>
 
 namespace Utils
 {
@@ -24,6 +25,10 @@ namespace Utils
     bool isDir(std::string);
     bool isFile(std::string);
     bool isPath(std::string);
+    bool hasReadPermission(const char* filePath);
+    bool hasExecutePermission(const char* filePath);
+    bool hasWritePermission(const char* filePath);
+    bool hasRootDirectoryAccess(const char* dirPath);
 }
 
 #endif

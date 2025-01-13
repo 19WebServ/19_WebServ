@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/10 19:01:37 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 14:24:19 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,8 +167,8 @@ void ConfigFile::parseServer(std::string serverStr)
         // std::cout << settings << std::endl;
         line.str(serverStr);
     }
+    server.checkMissigValues();
     server.checkIfValidPath();
-    // server.fillMissigValues();
     _servers.push_back(server);
 }
 

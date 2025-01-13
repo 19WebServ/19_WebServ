@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/09 19:08:57 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 13:34:10 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,40 @@ bool Utils::isPath(std::string path)
             return true;
     }
     return false;
+}
+
+// Check read permission for a file
+bool Utils::hasReadPermission(const char* filePath)
+{
+    if (access(filePath, R_OK) == 0)
+        return true;
+    else
+        return false;
+}
+
+// Check execute permission for a file
+bool Utils::hasExecutePermission(const char* filePath)
+{
+    if (access(filePath, X_OK) == 0)
+        return true;
+    else
+        return false;
+}
+
+// Check write permission for a file
+bool Utils::hasWritePermission(const char* filePath)
+{
+    if (access(filePath, W_OK) == 0)
+        return true;
+    else
+        return false;
+}
+
+// Check necessary permissions (read + execute) for the root directory
+bool Utils::hasRootDirectoryAccess(const char* dirPath)
+{
+    if (access(dirPath, R_OK | X_OK) == 0)
+        return true;
+    else
+        return false;
 }

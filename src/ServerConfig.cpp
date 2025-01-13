@@ -14,9 +14,10 @@
 
 ServerConfig::ServerConfig()
 {
-    _clientBodyLimit = 1000000;
-    _root = "/var/www/html";
-    _index = "index.html";
+    _port = 8080;
+    _clientBodyLimit = 1000;
+    _root = "";
+    _index = "";
 }
 
 ServerConfig::~ServerConfig()
@@ -115,6 +116,8 @@ void ServerConfig::extractRoot(std::string setting)
         throw std::runtime_error("More than 1 root.");
     if (!Utils::isDir(word))
         throw std::runtime_error("Invalid root.");
+    else if (!Utils::hasRootDirectoryAccess(word.c_str()))
+        throw std::runtime_error("Root directory does not have necessary access.");
     if (word[word.size() - 1] == '/')
         _root = word.substr(0, word.size() - 1);
     else
@@ -162,19 +165,46 @@ void ServerConfig::extractLocation(std::string setting)
     _routes[route] = extractLocationSettings(locationSettingsStr);
 }
 
+void ServerConfig::checkMissigValues()
+{
+    if (_serverName.empty())
+        throw std::runtime_error("missing a server name.");
+    if (_root.empty())
+        throw std::runtime_error("missing a root directory.");
+    if (_index.empty())
+        throw std::runtime_error("missing index page.");
+    for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
+        if (it->second.root.empty())
+            it->second.root = _root;
+        if (it->second.index.empty())
+            throw std::runtime_error("missing index page in " + it->first + " location block.");
+    }
+}
+
+// Check if all the paths are valid and if we have the right permissions
 void ServerConfig::checkIfValidPath()
 {
-    if (!Utils::isFile(_root + _index))
+    if (Utils::isFile(_root + _index))
         throw std::runtime_error("index is not a file.");
+    else if (!Utils::hasReadPermission((_root + _index).c_str()))
+        throw std::runtime_error("index file doesn't have read permission.");
     for (std::map<int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
         if (!Utils::isFile(_root + it->second))
             throw std::runtime_error("error page " + it->second + "is not a file.");
+        else if (!Utils::hasReadPermission((_root + it->second).c_str()))
+            throw std::runtime_error("error page " + it->second + "doesn't have read permission.");
     }
     for (std::map<std::string, RouteSettings>::const_iterator it = _routes.begin(); it != _routes.end(); it++) {
         if (!Utils::isFile(it->second.root + it->second.index))
             throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " is not a file.");
+        else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
+            throw std::runtime_error("index " + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
         if (!Utils::isFile(it->second.root + it->second.cgi))
             throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " is not a file.");
+        else if (!Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have read permission.");
+        else if (!Utils::hasExecutePermission((it->second.root + it->second.cgi).c_str()))
+            throw std::runtime_error("CGI " + it->second.cgi + " in loaction block " + it->first + " doesn't have execute permission.");
     }
 }
 

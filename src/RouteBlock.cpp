@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:23:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/10 18:59:27 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/13 14:48:55 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 RouteSettings extractLocationSettings(std::string configStr)
 {
-    RouteSettings routeBlock = {};
+    RouteSettings routeBlock;
     std::istringstream ss;
     std::string word;
     size_t index;
@@ -64,6 +64,16 @@ RouteSettings extractLocationSettings(std::string configStr)
     return routeBlock;
 }
 
+void initRouteBlock(RouteSettings &routeBlock)
+{
+    routeBlock.methods.push_back("GET");
+    routeBlock.root = "";
+    routeBlock.directoryListing = false;
+    routeBlock.index = "";
+    routeBlock.redirect = "";
+    routeBlock.cgi = "";
+}
+
 void extractRouteRoot(RouteSettings &route, std::string setting)
 {
     std::istringstream ss;
@@ -78,6 +88,8 @@ void extractRouteRoot(RouteSettings &route, std::string setting)
         throw std::runtime_error("More than 1 root.");
     if (!Utils::isDir(word))
         throw std::runtime_error("Invalid root.");
+    else if (!Utils::hasRootDirectoryAccess(word.c_str()))
+        throw std::runtime_error("Root directory does not have necessary access.");
     if (word[word.size() - 1] == '/')
         route.root = word.substr(0, word.size() - 1);
     else
