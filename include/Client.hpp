@@ -1,6 +1,7 @@
 #pragma once
 # include <cstdlib>
 # include <iostream>
+# include <ctime>
 
 class Client
 {
@@ -14,10 +15,15 @@ class Client
         size_t  getIndexClientFd();
         size_t  getMaxBodySize();
         int     getPort();
+        size_t  getTimeout();
+        size_t  getTimeLastRequest();
+        std::string getIp();
 
         void    setIp(std::string ip);
         void    setClientFd(int clientFd);
         void    setIndexClientFd(size_t index);
+        void    setTimeout(size_t time = 5);
+        void    setTimeLastRequest();
 
 
     private:
@@ -28,4 +34,6 @@ class Client
         std::string     _ip;
         size_t          _maxBodySize;
         int             _port;
+        size_t          _timeLastRequest;
+        size_t          _timeout;
 };

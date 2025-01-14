@@ -78,7 +78,7 @@ void Socket::launchServer()
 {
     while (1)
     {
-        int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), -1);
+        int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), 1000);
         if (event_count < 0)
         {
             std::cerr << "Error\n Poll failed" << std::endl;
@@ -86,6 +86,7 @@ void Socket::launchServer()
         }
         for (size_t i = 0; i < this->_poll_fds.size(); i++)
         {
+
             if (this->_poll_fds[i].revents & POLLIN)
             {
                 bool newConnection = false;
@@ -105,9 +106,22 @@ void Socket::launchServer()
                     for (; k < this->_clients.size(); k++)
                     {
                         if (this->_clients[k].getClientFd() == this->_poll_fds[i].fd)
+                        {
+                            handleClient(this->_poll_fds[i].fd, this->_clients[k]);
                             break;
+                        }
                     }
-                    handleClient(this->_poll_fds[i].fd, this->_clients[k]);
+                }
+            }
+            size_t k = 0;
+            for (; k < this->_clients.size(); k++)
+            {
+                if (getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
+                {
+                    std::cout << "Client "<<this->_clients[k].getIp() <<" Disconnected after '"<< this->_clients[k].getTimeout() << "' secondes of inactivity" << std::endl;
+                    close(this->_clients[k].getClientFd());
+                    this->_clients.erase(this->_clients.begin() + k);
+                    break;
                 }
             }
         }
@@ -118,6 +132,7 @@ void Socket::launchServer()
 void    Socket::handleClient(int &clientFd, Client &client)
 {
     size_t i = client.getMaxBodySize();
+    client.setTimeLastRequest();
     char buffer[i];
     int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
     if (bytes_receiv > 0)
@@ -222,6 +237,7 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int client)
 void Socket::acceptConnection(int serverSock, int i) 
 {
     Client client(serverSock, i, this->getPort(i), this->getServer(i).getBodySize());
+    client.setTimeLastRequest();
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_sock = accept(serverSock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
@@ -252,6 +268,7 @@ void Socket::acceptConnection(int serverSock, int i)
         client.setClientFd(client_sock);
         client.setIndexClientFd(this->_poll_fds.size() - 1);
         client.setIp(getClientIP(&client_addr));
+        client.setTimeout();
         this->_clients.push_back(client);
     }
     else 
@@ -303,4 +320,15 @@ int Socket::getPort(int i)
 ServerConfig Socket::getServer(int index)
 {
     return this->_servers[index];
+}
+
+size_t getTime()
+{
+    std::time_t currentTime = std::time(NULL);
+    size_t res = 0;
+    if (currentTime != static_cast<std::time_t>(-1))
+    {
+        res = static_cast<size_t>(currentTime);
+    }
+    return res;
 }

@@ -41,3 +41,4 @@ class Socket
         int         receiveData(int target_sock, char *buffer, unsigned int len);
 };
 
+size_t getTime();
