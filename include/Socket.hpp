@@ -36,7 +36,7 @@ class Socket
         void        handleClient(int &clientFd, Client &client);
         std::string getClientIP(struct sockaddr_in *client_addr);
         std::string readFile(const char *filename); 
-        int         processingRequest(char *buffer, int bytes_receive, int client);
+        int         processingRequest(char *buffer, int bytes_receive, int clientFd, Client client);
         int         sendData(int target_sock, const char *data, unsigned int len);
         int         receiveData(int target_sock, char *buffer, unsigned int len);
 };

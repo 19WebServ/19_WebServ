@@ -137,7 +137,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
     int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
     if (bytes_receiv > 0)
     {
-        if (this->processingRequest(buffer, bytes_receiv, clientFd))
+        if (this->processingRequest(buffer, bytes_receiv, clientFd, client))
             return ;
     }
     if (bytes_receiv <= 0) 
@@ -182,7 +182,7 @@ std::string Socket::readFile(const char *filename)
     return buffer;
 }
 
-int Socket::processingRequest(char *buffer, int bytes_receive, int client)
+int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Client client)
 {
     buffer[bytes_receive] = '\0';
     std::string request(buffer);
@@ -198,7 +198,7 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int client)
     else
         htmlContent = readFile("pages_html/index.html");
 
-    std::cout << "Received from client:\n" << buffer << std::endl;
+    std::cout << "Received from client "<< client.getIp() << ":\n" << request << std::endl;
 
     if (htmlContent.empty()) 
     {
@@ -222,7 +222,7 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int client)
     int total_sent = 0;
     while (total_sent < (int)response.size())
     {
-        int bytes_sent = this->sendData(client, response.c_str() + total_sent, response.size() - total_sent);
+        int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
         if (bytes_sent > 0)
             total_sent += bytes_sent;
         else if (errno != EWOULDBLOCK && errno != EAGAIN)
