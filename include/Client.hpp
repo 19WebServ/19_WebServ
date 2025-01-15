@@ -23,7 +23,7 @@ class Client
         void    setIp(std::string ip);
         void    setClientFd(int clientFd);
         void    setIndexClientFd(size_t index);
-        void    setTimeout(size_t time = 5);
+        void    setTimeout(size_t time = 100);
         void    setTimeLastRequest();
         void    setRequest(std::string str);
 

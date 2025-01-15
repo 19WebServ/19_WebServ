@@ -295,9 +295,15 @@ int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
         return -1;
     }
-    int res = recv(target_sock, buffer, len, 0);
-    if (res < 0)
-        std::cerr << "Error\nFailed to receive data." << std::endl;
+    int receiv = 0;
+    int res = 0;
+    while (true)
+    {
+        res = receiv;
+        receiv = recv(target_sock, buffer, len, 0);
+        if (receiv <= 0)
+            break;
+    }
     return res;
 }
 
