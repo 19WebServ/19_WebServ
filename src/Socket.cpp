@@ -166,77 +166,69 @@ void    Socket::handleClient(int &clientFd, Client &client)
     }
 }
 
-std::string Socket::readFile(const char *filename) 
-{
-    std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
-    if (!file.is_open())
-        return "";
-
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::string buffer(size, ' ');
-    if (!file.read(&buffer[0], size))
-        return "";
-    file.close();
-    return buffer;
-}
-
 int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Client client)
 {
     buffer[bytes_receive] = '\0';
     std::string request(buffer);
-    if (request.find("GET /favicon.ico") != std::string::npos)
-        return 0;
     std::string htmlContent;
-    if (request.find("GET /televers.html") != std::string::npos)
-        htmlContent = readFile("pages_html/televers.html");
-    else if (request.find("GET /contact.html") != std::string::npos)
-        htmlContent = readFile("pages_html/contact.html");
-    else if (request.find("GET /service.html") != std::string::npos)
-        htmlContent = readFile("pages_html/service.html");
-    else
-        htmlContent = readFile("pages_html/index.html");
-
-    std::cout << "Received from client "<< client.getIp() << ":\n" << request << std::endl;
-
-    if (htmlContent.empty()) 
-    {
-        std::cerr << "Failed to read index.html." << std::endl;
-        return 1;
+    try {
+        client.parseRequest(request);
+        htmlContent = client.sendResponse();
     }
-
-    std::ostringstream oss;
-    oss << htmlContent.size();
-    std::string contentLength = oss.str();
-
-    std::string response = 
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: " + contentLength + "\r\n"
-        "Connection: keep-alive\r\n"
-        "Keep-Alive: timeout=10000\r\n"
-        "\r\n" +
-        htmlContent;
-
-    int total_sent = 0;
-    while (total_sent < (int)response.size())
-    {
-        int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
-        if (bytes_sent > 0)
-            total_sent += bytes_sent;
-        else if (errno != EWOULDBLOCK && errno != EAGAIN)
-        {
-            std::cerr << "Failed to send response to client." << std::endl;
-            break;
-        }
+    catch(const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
+    
+    // if (request.find("GET /favicon.ico") != std::string::npos)
+    //     return 0;
+    // if (request.find("GET /televers.html") != std::string::npos)
+    //     htmlContent = readFile("pages_html/televers.html");
+    // else if (request.find("GET /contact.html") != std::string::npos)
+    //     htmlContent = readFile("pages_html/contact.html");
+    // else if (request.find("GET /service.html") != std::string::npos)
+    //     htmlContent = readFile("pages_html/service.html");
+    // else
+    //     htmlContent = readFile("pages_html/index.html");
+
+    // std::cout << "Received from client "<< client.getIp() << ":\n" << request << std::endl;
+
+    // if (htmlContent.empty()) 
+    // {
+    //     std::cerr << "Failed to read index.html." << std::endl;
+    //     return 1;
+    // }
+
+    // std::ostringstream oss;
+    // oss << htmlContent.size();
+    // std::string contentLength = oss.str();
+
+    // std::string response = 
+    //     "HTTP/1.1 200 OK\r\n"
+    //     "Content-Type: text/html\r\n"
+    //     "Content-Length: " + contentLength + "\r\n"
+    //     "Connection: keep-alive\r\n"
+    //     "Keep-Alive: timeout=10000\r\n"
+    //     "\r\n" +
+    //     htmlContent;
+
+    // int total_sent = 0;
+    // while (total_sent < (int)response.size())
+    // {
+    //     int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
+    //     if (bytes_sent > 0)
+    //         total_sent += bytes_sent;
+    //     else if (errno != EWOULDBLOCK && errno != EAGAIN)
+    //     {
+    //         std::cerr << "Failed to send response to client." << std::endl;
+    //         break;
+    //     }
+    // }
     return 0;
 }
 
 void Socket::acceptConnection(int serverSock, int i) 
 {
-    Client client(serverSock, i, this->getPort(i), this->getServer(i).getBodySize());
+    Client client(serverSock, i, this->getPort(i),  this->getServer(i));
     client.setTimeLastRequest();
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);

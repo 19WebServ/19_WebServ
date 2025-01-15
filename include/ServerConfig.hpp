@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 16:04:15 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/15 14:25:41 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,8 @@ public:
     std::string getErrorPage(int);
     std::string getRoot();
     std::string getIndex();
-    bool getLocationAllowedMethods(std::string, std::string);
+    std::vector<std::string> getLocationAllowedMethods(std::string);
+    bool isAllowed(std::string, std::string);
     std::string getLocationRoot(std::string);
     bool getLocationDirectoryListing(std::string);
     std::string getLocationIndex(std::string);

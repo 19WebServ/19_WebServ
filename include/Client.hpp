@@ -2,11 +2,16 @@
 # include <cstdlib>
 # include <iostream>
 # include <ctime>
+# include <sstream>
+# include <string>
+# include "./ServerConfig.hpp"
+# include "./Request.hpp"
+# include "./Utils.hpp"
 
 class Client
 {
     public:
-        Client(int ServerFd, int indexServerSock, int port, size_t bodySize);
+        Client(int ServerFd, int indexServerSock, int port, ServerConfig server);
         ~Client();
 
         int         getServerFd();
@@ -25,10 +30,18 @@ class Client
         void    setIndexClientFd(size_t index);
         void    setTimeout(size_t time = 100);
         void    setTimeLastRequest();
-        void    setRequest(std::string str);
+        // void    setRequest(std::string str);
+
+        void    parseRequest(std::string);
+        void    setRequest(std::string, std::string, std::string);
+        std::string    sendResponse();
+
+        std::string respondToGet();
 
 
     private:
+        ServerConfig    _server;
+        Request         _request;
         int             _serverFd;
         size_t          _indexServerFd;
         int             _clientFd;

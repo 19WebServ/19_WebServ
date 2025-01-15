@@ -275,7 +275,16 @@ std::string ServerConfig::getIndex()
     return _index;
 }
 
-bool ServerConfig::getLocationAllowedMethods(std::string location, std::string method)
+std::vector<std::string> ServerConfig::getLocationAllowedMethods(std::string location)
+{
+    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+    if (it != _routes.end())
+        return it->second.methods;
+    else
+        throw std::runtime_error(location + "unknown route.");
+}
+
+bool ServerConfig::isAllowed(std::string location, std::string method)
 {
     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
     if (it != _routes.end()) {
@@ -286,7 +295,7 @@ bool ServerConfig::getLocationAllowedMethods(std::string location, std::string m
             return false;
     }
     else
-        return false;
+        throw std::runtime_error("404" + location);
 }
 
 std::string ServerConfig::getLocationRoot(std::string location)
@@ -295,7 +304,7 @@ std::string ServerConfig::getLocationRoot(std::string location)
     if (it != _routes.end())
         return it->second.root;
     else
-        return "";
+        throw std::runtime_error("404" + location);
 }
 
 bool ServerConfig::getLocationDirectoryListing(std::string location)
@@ -304,7 +313,7 @@ bool ServerConfig::getLocationDirectoryListing(std::string location)
     if (it != _routes.end())
         return it->second.directoryListing;
     else
-        return "";
+        throw std::runtime_error("404" + location);
 }
 
 std::string ServerConfig::getLocationIndex(std::string location)
@@ -313,7 +322,7 @@ std::string ServerConfig::getLocationIndex(std::string location)
     if (it != _routes.end())
         return it->second.index;
     else
-        return "";
+        throw std::runtime_error("404" + location);
 }
 
 std::string ServerConfig::getLocationRedirect(std::string location)
@@ -322,7 +331,7 @@ std::string ServerConfig::getLocationRedirect(std::string location)
     if (it != _routes.end())
         return it->second.redirect;
     else
-        return "";
+        throw std::runtime_error("404" + location);
 }
 
 std::string ServerConfig::getLocationCgi(std::string location)
@@ -331,5 +340,5 @@ std::string ServerConfig::getLocationCgi(std::string location)
     if (it != _routes.end())
         return it->second.cgi;
     else
-        return "";
+        throw std::runtime_error("404" + location);
 }

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 15:36:20 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/15 18:21:47 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,4 +97,20 @@ bool Utils::hasRootDirectoryAccess(const char* dirPath)
         return true;
     else
         return false;
+}
+
+std::string Utils::readFile(char *filename) 
+{
+    std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!file.is_open())
+        return "";
+
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::string buffer(size, ' ');
+    if (!file.read(&buffer[0], size))
+        return "";
+    file.close();
+    return buffer;
 }

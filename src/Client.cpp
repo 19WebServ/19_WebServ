@@ -1,9 +1,8 @@
 #include "../include/Client.hpp"
 
-Client::Client(int serverFd, int indexServerSock, int port, size_t bodySize) : _serverFd(serverFd), _indexServerFd(indexServerSock), _maxBodySize(bodySize), _port(port)
+Client::Client(int serverFd, int indexServerSock, int port, ServerConfig server) : _server(server), _serverFd(serverFd), _indexServerFd(indexServerSock), _port(port)
 {
-    std::cout << "BODY SIZE = " << this->_maxBodySize << std::endl;
-    
+    this->_maxBodySize = this->_server.getBodySize();
 }
 
 Client::~Client()
@@ -88,4 +87,85 @@ size_t Client::getTimeLastRequest()
 std::string Client::getIp()
 {
     return this->_ip;
+}
+
+void    Client::parseRequest(std::string request)
+{
+    std::istringstream ss;
+    ss.str(request);
+    std::string method;
+    std::string location;
+    bool allowed = false;
+
+    getline(ss, method, ' ');
+    getline(ss, location, ' ');
+    for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
+        if (method == _server.getLocationAllowedMethods(location)[i]) {
+            setRequest(request, location, method);
+            allowed = true;
+        }
+    }
+    if (allowed == false)
+        throw std::runtime_error("405" + method);
+}
+
+void Client::setRequest(std::string requestStr, std::string location, std::string method)
+{
+    Request temp(location, method);
+
+    if (method == "POST") {
+        std::istringstream ss;
+        std::string line;
+        std::string body = "";
+    
+        ss.str(requestStr);
+        while (getline(ss, line)) {
+            if (!line.empty() && line[line.size() - 1] == '\r')
+                line.substr(0, line.size() - 2);
+            if (line.empty())
+                break;
+        }
+        while (getline(ss, line))
+            body += (line + '\n');
+        temp.setContent(body);
+    }
+    this->_request = temp;
+}
+
+std::string    Client::sendResponse()
+{
+    int index(0);
+    std::string methods[3] = {"GET", "POST", "DELETE"};
+    std::string htmlContent;
+    for (; index < 3; index++)
+    {
+        index = 0;
+        for (; index < sizeof(methods) / sizeof(methods[0]); index++) {
+            if (methods[index] == this->_request.getMethod())
+                break;
+        }
+        switch (index)
+        {
+        case 0:
+            /* GET */
+            htmlContent = this->respondToGet();
+            break;
+        case 1:
+            /* POST */
+            break;
+        case 2:
+            /* DELETE */
+            break;
+        
+        default:
+            throw std::runtime_error("Should not go here");
+            break;
+        }
+    }
+    return htmlContent;
+}
+
+std::string Client::respondToGet()
+{
+    
 }

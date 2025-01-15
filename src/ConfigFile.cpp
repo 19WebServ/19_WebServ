@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 14:24:19 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/15 13:45:39 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,11 +149,11 @@ void ConfigFile::parseServer(std::string serverStr)
             settings = Utils::trimLine(serverStr, ';');
             server.extractRoot(settings);
             break;
-        case 5:
-            /* index */
-            settings = Utils::trimLine(serverStr, ';');
-            server.extractIndex(settings);
-            break;
+        // case 5:
+        //     /* index */
+        //     settings = Utils::trimLine(serverStr, ';');
+        //     server.extractIndex(settings);
+        //     break;
         case 6:
             /* routes */
             settings = Utils::trimLine(serverStr, '}');
