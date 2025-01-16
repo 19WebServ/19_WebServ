@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 14:46:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/15 18:03:55 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/16 10:45:29 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,5 @@ private:
     size_t      _contentLen;
     std::string _contentType;
 };
-
 
 #endif

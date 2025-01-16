@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/15 18:21:39 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/16 14:19:45 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ namespace Utils
     bool hasExecutePermission(const char* filePath);
     bool hasWritePermission(const char* filePath);
     bool hasRootDirectoryAccess(const char* dirPath);
-    std::string readFile(char *filename);
+    std::string readFile(std::string filename);
+    std::string generateErrorPage(std::string);
 }
 
 #endif

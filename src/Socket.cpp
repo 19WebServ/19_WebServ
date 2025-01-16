@@ -140,7 +140,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
         if (this->processingRequest(buffer, bytes_receiv, clientFd, client))
             return ;
     }
-    if (bytes_receiv <= 0) 
+    else  
     {
         if (bytes_receiv == 0) 
             std::cout << "Client disconnected" << std::endl;
@@ -170,59 +170,27 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Cli
 {
     buffer[bytes_receive] = '\0';
     std::string request(buffer);
-    std::string htmlContent;
+    std::string response;
     try {
         client.parseRequest(request);
-        htmlContent = client.sendResponse();
+        response = client.sendResponse();
     }
     catch(const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        response = client.handleErrorResponse(e.what());
     }
     
-    // if (request.find("GET /favicon.ico") != std::string::npos)
-    //     return 0;
-    // if (request.find("GET /televers.html") != std::string::npos)
-    //     htmlContent = readFile("pages_html/televers.html");
-    // else if (request.find("GET /contact.html") != std::string::npos)
-    //     htmlContent = readFile("pages_html/contact.html");
-    // else if (request.find("GET /service.html") != std::string::npos)
-    //     htmlContent = readFile("pages_html/service.html");
-    // else
-    //     htmlContent = readFile("pages_html/index.html");
-
-    // std::cout << "Received from client "<< client.getIp() << ":\n" << request << std::endl;
-
-    // if (htmlContent.empty()) 
-    // {
-    //     std::cerr << "Failed to read index.html." << std::endl;
-    //     return 1;
-    // }
-
-    // std::ostringstream oss;
-    // oss << htmlContent.size();
-    // std::string contentLength = oss.str();
-
-    // std::string response = 
-    //     "HTTP/1.1 200 OK\r\n"
-    //     "Content-Type: text/html\r\n"
-    //     "Content-Length: " + contentLength + "\r\n"
-    //     "Connection: keep-alive\r\n"
-    //     "Keep-Alive: timeout=10000\r\n"
-    //     "\r\n" +
-    //     htmlContent;
-
-    // int total_sent = 0;
-    // while (total_sent < (int)response.size())
-    // {
-    //     int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
-    //     if (bytes_sent > 0)
-    //         total_sent += bytes_sent;
-    //     else if (errno != EWOULDBLOCK && errno != EAGAIN)
-    //     {
-    //         std::cerr << "Failed to send response to client." << std::endl;
-    //         break;
-    //     }
-    // }
+    int total_sent = 0;
+    while (total_sent < (int)response.size())
+    {
+        int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
+        if (bytes_sent > 0)
+            total_sent += bytes_sent;
+        else if (errno != EWOULDBLOCK && errno != EAGAIN)
+        {
+            std::cerr << "Failed to send response to client." << std::endl;
+            break;
+        }
+    }
     return 0;
 }
 
@@ -291,8 +259,8 @@ int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
     int res = 0;
     while (true)
     {
-        res = receiv;
         receiv = recv(target_sock, buffer, len, 0);
+        res += receiv;
         if (receiv <= 0)
             break;
     }

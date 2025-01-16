@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:23:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/13 14:48:55 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/16 13:14:13 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ RouteSettings extractLocationSettings(std::string configStr)
     std::string settings;
     std::string keywords[6] = {"root", "index", "autoindex", "allowed_methods", "cgi_param", "return"};
     
+    initRouteBlock(routeBlock);
     ss.str(configStr);
     while (getline(ss, word, ' ')) {
         index = 0;

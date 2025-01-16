@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/15 18:21:47 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/16 14:33:41 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,9 +99,9 @@ bool Utils::hasRootDirectoryAccess(const char* dirPath)
         return false;
 }
 
-std::string Utils::readFile(char *filename) 
+std::string Utils::readFile(std::string filename) 
 {
-    std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
+    std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
     if (!file.is_open())
         return "";
 
@@ -112,5 +112,20 @@ std::string Utils::readFile(char *filename)
     if (!file.read(&buffer[0], size))
         return "";
     file.close();
+    return buffer;
+}
+
+std::string Utils::generateErrorPage(std::string error)
+{
+    std::string buffer;
+    buffer =    "<!DOCTYPE html>\n"
+                "<html>\n"
+                "<head>\n"
+                "    <title>" + error + "</title>\n"
+                "</head>\n"
+                "<body>\n"
+                "    <p><b>" + error + "</b></p>\n"
+                "</body>\n"
+                "</html>\n";
     return buffer;
 }

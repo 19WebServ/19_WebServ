@@ -97,6 +97,9 @@ void    Client::parseRequest(std::string request)
     std::string location;
     bool allowed = false;
 
+    if (request.find("GET /favicon.ico") != std::string::npos)
+        return ;
+    std::cout << request << std::endl;
     getline(ss, method, ' ');
     getline(ss, location, ' ');
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
@@ -106,7 +109,7 @@ void    Client::parseRequest(std::string request)
         }
     }
     if (allowed == false)
-        throw std::runtime_error("405" + method);
+        throw std::runtime_error("405 Method Not Allowed");
 }
 
 void Client::setRequest(std::string requestStr, std::string location, std::string method)
@@ -134,50 +137,109 @@ void Client::setRequest(std::string requestStr, std::string location, std::strin
 
 std::string    Client::sendResponse()
 {
-    int index(0);
+    size_t index(0);
     std::string methods[3] = {"GET", "POST", "DELETE"};
-    std::string htmlContent;
-    for (; index < 3; index++)
-    {
-        index = 0;
-        for (; index < sizeof(methods) / sizeof(methods[0]); index++) {
-            if (methods[index] == this->_request.getMethod())
-                break;
-        }
-        switch (index)
-        {
-        case 0:
-            /* GET */
-            htmlContent = this->respondToGet();
+    std::string response = "";
+
+    index = 0;
+    for (; index < sizeof(methods) / sizeof(methods[0]); index++) {
+        if (methods[index] == this->_request.getMethod())
             break;
-        case 1:
-            /* POST */
-            htmlContent = this->respondToPost();
-            break;
-        case 2:
-            /* DELETE */
-            htmlContent = this->respondToDelete();
-            break;
-        
-        default:
-            throw std::runtime_error("Should not go here");
-            break;
-        }
     }
-    return htmlContent;
+    switch (index)
+    {
+    case 0:
+        /* GET */
+        response = this->respondToGet();
+        break;
+    case 1:
+    //     /* POST */
+    //     response = this->respondToPost();
+        break;
+    case 2:
+    //     /* DELETE */
+    //     response = this->respondToDelete();
+        break;
+        
+    default:
+        break;
+    }
+    return response;
 }
 
 std::string Client::respondToGet()
 {
-    
+    std::string htmlContent;
+    std::string locationRoot = _server.getLocationRoot(_request.getLocation());
+    std::string locationIndex = _server.getLocationIndex(_request.getLocation());
+    // std::cout << "Received from client "<< _ip << std::endl;
+    if (!Utils::isFile(locationRoot + locationIndex))
+        throw std::runtime_error("404 Not Found");
+    else if (!Utils::hasReadPermission((locationRoot + locationIndex).c_str()))
+        throw std::runtime_error("403 Forbidden");
+    htmlContent = Utils::readFile(locationRoot + locationIndex);
+    if (htmlContent.empty())
+        throw std::runtime_error("Failed to read html file.");
+    std::ostringstream oss;
+    oss << htmlContent.size();
+    std::string contentLength = oss.str();
+    std::string response = 
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: " + contentLength + "\r\n"
+        "Connection: keep-alive\r\n"
+        "Keep-Alive: timeout=10000\r\n"
+        "\r\n" +
+        htmlContent;
+    return response;
 }
 
-std::string Client::respondToPost()
-{
+// std::string Client::respondToPost()
+// {
     
-}
+// }
 
-std::string Client::respondToDelete()
-{
+// std::string Client::respondToDelete()
+// {
     
+// }
+
+std::string Client::handleErrorResponse(std::string error)
+{
+    std::string word;
+    std::string response;
+    std::istringstream ss;
+    std::string errorPage;
+    std::string root;
+    std::string htmlContent;
+
+    ss.str(error);
+    getline(ss, word, ' ');
+    if (Utils::areOnlyDigits(word)) {
+        errorPage = _server.getErrorPage(atoi(word.c_str()));
+        root = _server.getRoot();
+        if (!errorPage.empty())
+            htmlContent = Utils::readFile(root + errorPage);
+        else
+            htmlContent = Utils::generateErrorPage(error);
+
+        if (htmlContent.empty())
+            throw std::runtime_error("Failed to read html file.");
+        std::ostringstream oss;
+        oss << htmlContent.size();
+        std::string contentLength = oss.str();
+
+        response =
+        "HTTP/1.1 " + error + "\r\n"
+        "Content-Type: text/html; charset=UTF-8\r\n"
+        "Content-Length: " + contentLength + "\r\n"
+        "Connection: close\r\n"
+        "\r\n" +
+        htmlContent;
+    }
+    else {
+        std::cerr << "Error: " << error << std::endl;
+        std::exit(1); // JE SAIS PAS QUOI METTRE ICI
+    }
+    return response;
 }

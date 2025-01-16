@@ -171,8 +171,8 @@ void ServerConfig::checkMissigValues()
         throw std::runtime_error("missing a server name.");
     if (_root.empty())
         throw std::runtime_error("missing a root directory.");
-    if (_index.empty())
-        throw std::runtime_error("missing index page.");
+    // if (_index.empty())
+    //     throw std::runtime_error("missing index page.");
     for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
         if (it->second.root.empty())
             it->second.root = _root;
@@ -184,10 +184,10 @@ void ServerConfig::checkMissigValues()
 // Check if all the paths are valid and if we have the right permissions
 void ServerConfig::checkIfValidPath()
 {
-    if (!Utils::isFile(_root + _index))
-        throw std::runtime_error("index " + _root + _index + " is not a file.");
-    else if (!Utils::hasReadPermission((_root + _index).c_str()))
-        throw std::runtime_error("index " + _root + _index + " file doesn't have read permission.");
+    // if (!Utils::isFile(_root + _index))
+    //     throw std::runtime_error("index " + _root + _index + " is not a file.");
+    // else if (!Utils::hasReadPermission((_root + _index).c_str()))
+    //     throw std::runtime_error("index " + _root + _index + " file doesn't have read permission.");
     for (std::map<int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
         if (!Utils::isFile(_root + it->second))
             throw std::runtime_error("error page " + it->second + "is not a file.");
@@ -195,10 +195,10 @@ void ServerConfig::checkIfValidPath()
             throw std::runtime_error("error page " + it->second + "doesn't have read permission.");
     }
     for (std::map<std::string, RouteSettings>::const_iterator it = _routes.begin(); it != _routes.end(); it++) {
-        if (!Utils::isFile(it->second.root + it->second.index))
-            throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " is not a file.");
-        else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
-            throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
+        // if (!Utils::isFile(it->second.root + it->second.index))
+        //     throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " is not a file.");
+        // else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
+        //     throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
         if (!it->second.cgi.empty() && !Utils::isFile(it->second.root + it->second.cgi))
             throw std::runtime_error("CGI " + it->second.root + it->second.cgi + " in loaction block " + it->first + " is not a file.");
         else if (!it->second.cgi.empty() && !Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
@@ -281,7 +281,7 @@ std::vector<std::string> ServerConfig::getLocationAllowedMethods(std::string loc
     if (it != _routes.end())
         return it->second.methods;
     else
-        throw std::runtime_error(location + "unknown route.");
+        throw std::runtime_error("404 Not Found");
 }
 
 bool ServerConfig::isAllowed(std::string location, std::string method)
@@ -295,7 +295,7 @@ bool ServerConfig::isAllowed(std::string location, std::string method)
             return false;
     }
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }
 
 std::string ServerConfig::getLocationRoot(std::string location)
@@ -304,7 +304,7 @@ std::string ServerConfig::getLocationRoot(std::string location)
     if (it != _routes.end())
         return it->second.root;
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }
 
 bool ServerConfig::getLocationDirectoryListing(std::string location)
@@ -313,7 +313,7 @@ bool ServerConfig::getLocationDirectoryListing(std::string location)
     if (it != _routes.end())
         return it->second.directoryListing;
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }
 
 std::string ServerConfig::getLocationIndex(std::string location)
@@ -322,7 +322,7 @@ std::string ServerConfig::getLocationIndex(std::string location)
     if (it != _routes.end())
         return it->second.index;
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }
 
 std::string ServerConfig::getLocationRedirect(std::string location)
@@ -331,7 +331,7 @@ std::string ServerConfig::getLocationRedirect(std::string location)
     if (it != _routes.end())
         return it->second.redirect;
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }
 
 std::string ServerConfig::getLocationCgi(std::string location)
@@ -340,5 +340,5 @@ std::string ServerConfig::getLocationCgi(std::string location)
     if (it != _routes.end())
         return it->second.cgi;
     else
-        throw std::runtime_error("404" + location);
+        throw std::runtime_error("404 Not Found");
 }

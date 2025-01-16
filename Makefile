@@ -16,6 +16,7 @@ SRCS =	$(SRC_DIR)/main.cpp \
 		$(SRC_DIR)/Client.cpp \
 		$(SRC_DIR)/Utils.cpp \
 		$(SRC_DIR)/RouteBlock.cpp \
+		$(SRC_DIR)/Request.cpp \
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

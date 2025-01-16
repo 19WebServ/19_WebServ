@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/15 14:25:41 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/16 13:26:23 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,5 +82,6 @@ void extractRouteAutoindex(RouteSettings &, std::string);
 void extractRouteMethod(RouteSettings &, std::string);
 void extractRouteCgi(RouteSettings &, std::string);
 void extractRouteRedir(RouteSettings &, std::string);
+void initRouteBlock(RouteSettings &routeBlock);
 
 #endif
