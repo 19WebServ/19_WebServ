@@ -37,6 +37,8 @@ class Client
         std::string    sendResponse();
 
         std::string respondToGet();
+        std::string respondToPost();
+        std::string respondToDelete();
 
 
     private:

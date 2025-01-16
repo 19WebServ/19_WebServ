@@ -152,9 +152,11 @@ std::string    Client::sendResponse()
             break;
         case 1:
             /* POST */
+            htmlContent = this->respondToPost();
             break;
         case 2:
             /* DELETE */
+            htmlContent = this->respondToDelete();
             break;
         
         default:
@@ -166,6 +168,16 @@ std::string    Client::sendResponse()
 }
 
 std::string Client::respondToGet()
+{
+    
+}
+
+std::string Client::respondToPost()
+{
+    
+}
+
+std::string Client::respondToDelete()
 {
     
 }
