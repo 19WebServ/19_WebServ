@@ -19,7 +19,7 @@ Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &s
             std::cerr << "Error\nFailed to set socket options" << std::endl;
             closeFds(this->_serverSocks);
         }
-        int current_opt;
+        int current_opt = 1;
         socklen_t opt_len = sizeof(current_opt);
         if (getsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0)
             std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
@@ -146,6 +146,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
             std::cout << "Client disconnected" << std::endl;
         else if (errno != EWOULDBLOCK && errno != EAGAIN)
             std::cerr << "Failed to receive data from client" << std::endl;
+        close(clientFd);
         for (size_t k = 0; k < this->_clients.size(); k++)
         {
             if (this->_clients[k].getClientFd() == clientFd)
@@ -154,7 +155,6 @@ void    Socket::handleClient(int &clientFd, Client &client)
                 break;
             }
         }
-        close(clientFd);
         for (size_t k = 0; k < this->_poll_fds.size(); ++k)
         {
             if (this->_poll_fds[k].fd == clientFd)
@@ -180,6 +180,7 @@ int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Cli
     }
     
     int total_sent = 0;
+    // std::cout << "response " << response.c_str() << std::endl;
     while (total_sent < (int)response.size())
     {
         int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
@@ -266,6 +267,7 @@ int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
     }
     return res;
 }
+
 
 std::string Socket::getClientIP(struct sockaddr_in *client_addr)
 {
