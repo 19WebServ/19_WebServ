@@ -64,7 +64,6 @@ Socket::~Socket()
 
 void Socket::signalHandler(int signum)
 {
-    std::cerr<< "\nSignal (" << signum <<") recu. Fermeture Socket"<< std::endl;
     if (Socket::getInstance())
     {
         Socket::getInstance()->closeFds(Socket::getInstance()->_serverSocks);
@@ -85,7 +84,7 @@ void Socket::closeFds(std::vector<int>serverSocks)
             close(serverSocks[i]);
         }
     }
-    std::cerr<< "All server sockets closed" << std::endl;
+    std::cerr<< "\nAll server sockets closed" << std::endl;
 }
 
 void Socket::launchServer()
