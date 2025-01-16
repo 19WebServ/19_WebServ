@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <sstream>
+#include <csignal>
 #include <iostream>
 #include <vector>
 #include <poll.h>
@@ -22,6 +23,8 @@ class Socket
         void            launchServer();
         int             getPort(int index);
         ServerConfig    getServer(int index);
+        static Socket*  getInstance();
+        static void     signalHandler(int signum);
 
     private:
         std::vector<int> _ports;
@@ -29,6 +32,7 @@ class Socket
         std::vector<pollfd> _poll_fds;
         std::vector<ServerConfig> _servers;
         std::vector<Client> _clients;
+        static Socket*     _instance;
 
 
         void        closeFds(std::vector<int>serverSocks);

@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <fstream>
 
+Socket* Socket::_instance = nullptr;
+
 Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server) : _ports(ports) , _servers(server)
 {
     for (size_t i = 0; i < this->_ports.size(); i ++)
@@ -51,11 +53,23 @@ Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &s
         this->_poll_fds.push_back(serverPollFd);
         this->_serverSocks.push_back(serverSock);
     }
+    this->_instance = this;
+    std::signal(SIGINT, Socket::signalHandler);
 }
 
 Socket::~Socket()
 {
     closeFds(this->_serverSocks);
+}
+
+void Socket::signalHandler(int signum)
+{
+    std::cerr<< "\nSignal (" << signum <<") recu. Fermeture Socket"<< std::endl;
+    if (Socket::getInstance())
+    {
+        Socket::getInstance()->closeFds(Socket::getInstance()->_serverSocks);
+    }
+    exit(signum);
 }
 
 void Socket::closeFds(std::vector<int>serverSocks)
@@ -268,6 +282,10 @@ int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
     return res;
 }
 
+Socket* Socket::getInstance()
+{
+    return _instance;
+}
 
 std::string Socket::getClientIP(struct sockaddr_in *client_addr)
 {
