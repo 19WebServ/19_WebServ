@@ -150,6 +150,7 @@ std::string    Client::sendResponse()
     {
     case 0:
         /* GET */
+        std::cout << "ICI" << std::endl;
         response = this->respondToGet();
         break;
     case 1:
@@ -172,12 +173,17 @@ std::string Client::respondToGet()
     std::string htmlContent;
     std::string locationRoot = _server.getLocationRoot(_request.getLocation());
     std::string locationIndex = _server.getLocationIndex(_request.getLocation());
+    std::string path = locationRoot + locationIndex;
     // std::cout << "Received from client "<< _ip << std::endl;
-    if (!Utils::isFile(locationRoot + locationIndex))
+    std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
+    if (!Utils::isFile(path))
         throw std::runtime_error("404 Not Found");
-    else if (!Utils::hasReadPermission((locationRoot + locationIndex).c_str()))
+    else if (!Utils::hasReadPermission((path).c_str()))
         throw std::runtime_error("403 Forbidden");
-    htmlContent = Utils::readFile(locationRoot + locationIndex);
+    if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
+        return executePython(path);
+    std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
+    htmlContent = Utils::readFile(path);
     if (htmlContent.empty())
         throw std::runtime_error("Failed to read html file.");
     std::ostringstream oss;
@@ -192,6 +198,63 @@ std::string Client::respondToGet()
         "\r\n" +
         htmlContent;
     return response;
+}
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+std::string Client::executePython(const std::string& scriptPath) {
+    int pipefd[2];
+    if (pipe(pipefd) == -1)
+        throw std::runtime_error("500 Internal Server Error: Pipe failed");
+
+    pid_t pid = fork();
+    if (pid < 0)
+        throw std::runtime_error("500 Internal Server Error: Fork failed");
+
+    if (pid == 0) {
+        close(pipefd[0]);
+
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+
+        char* argv[] = {(char*)scriptPath.c_str(), NULL};
+        char* envp[] = {NULL};
+
+        execve(argv[0], argv, envp);
+        perror("execve");
+        exit(1);
+    } 
+
+    close(pipefd[1]);
+    char buffer[getMaxBodySize()];
+    std::string output;
+    size_t bytesRead;
+
+    while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[bytesRead] = '\0';
+        output += buffer;
+    }
+    close(pipefd[0]);
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        throw std::runtime_error("500 Internal Server Error: CGI script failed");
+
+    std::ostringstream oss;
+    oss << output.size();
+    std::string contentLength = oss.str();
+
+    return "HTTP/1.1 200 OK\r\n"
+           "Content-Type: text/html\r\n"
+           "Content-Length: " + contentLength + "\r\n"
+           "Connection: keep-alive\r\n"
+           "Keep-Alive: timeout=10000\r\n"
+           "\r\n" +
+           output;
 }
 
 // std::string Client::respondToPost()
