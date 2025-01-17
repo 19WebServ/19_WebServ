@@ -40,7 +40,7 @@ class Client
         std::string respondToPost();
         std::string respondToDelete();
         std::string handleErrorResponse(std::string);
-        std::string executePython(const std::string& scriptPath);
+        std::string executeCGI(const std::string& scriptPath);
 
 
     private:

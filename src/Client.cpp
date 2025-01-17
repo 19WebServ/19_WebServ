@@ -150,7 +150,6 @@ std::string    Client::sendResponse()
     {
     case 0:
         /* GET */
-        std::cout << "ICI" << std::endl;
         response = this->respondToGet();
         break;
     case 1:
@@ -180,8 +179,9 @@ std::string Client::respondToGet()
         throw std::runtime_error("404 Not Found");
     else if (!Utils::hasReadPermission((path).c_str()))
         throw std::runtime_error("403 Forbidden");
-    if (path.size() > 3 && path.substr(path.size() - 3) == ".py")
-        return executePython(path);
+    if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
+        return executeCGI(path);
+    
     std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
     htmlContent = Utils::readFile(path);
     if (htmlContent.empty())
@@ -205,7 +205,7 @@ std::string Client::respondToGet()
 #include <unistd.h>
 #include <fcntl.h>
 
-std::string Client::executePython(const std::string& scriptPath) {
+std::string Client::executeCGI(const std::string& scriptPath) {
     int pipefd[2];
     if (pipe(pipefd) == -1)
         throw std::runtime_error("500 Internal Server Error: Pipe failed");

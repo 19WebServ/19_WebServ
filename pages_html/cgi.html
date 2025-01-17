@@ -57,6 +57,9 @@
 
         .button-container {
             margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
         }
 
         button {
@@ -88,15 +91,15 @@
 <body>
     <!-- Bannière -->
     <div class="banner">
-        Jouez à Pile ou Face !
+        Jouez avec les CGI !
     </div>
 
     <!-- Menu -->
     <nav>
         <ul>
-            <li><a href="">Accueil</a></li>
-            <li><a href="televers">Televers</a></li>
-            <li><a href="cgi">CGI</a></li>
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/televers">Téléverser</a></li>
+            <li><a href="/cgi">CGI</a></li>
         </ul>
     </nav>
 
@@ -106,6 +109,9 @@
         <div class="button-container">
             <form action="/cgi/pileFace.py" method="GET">
                 <button type="submit">Pile ou Face</button>
+            </form>
+            <form action="/cgi/cgiPearl.pl" method="GET">
+                <button type="submit">Générateur</button>
             </form>
         </div>
     </main>
