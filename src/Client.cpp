@@ -286,7 +286,7 @@ std::string Client::respondToPost()
 {
     std::string response;
     postContent();
-    response = 
+    response =
         "HTTP/1.1 201 Created\r\n"
         "Content-Type: text/plain\r\n"
         "Content-Length: 19\r\n"
@@ -302,6 +302,8 @@ void Client::postContent()
     size_t start = 0, end = 0;
     std::string body = _request.getContent();
     start = body.find(delimiter, end);
+    if (start == std::string::npos)
+        throw std::runtime_error("Boundary not found in body.");
     while (start != std::string::npos) {
         start += delimiter.size() + 1;
         end = body.find(delimiter, start);
@@ -314,7 +316,7 @@ void Client::postContent()
                 std::string filename = part.substr(nameStart, nameEnd - nameStart);
 
                 size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
-                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 5);
+                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 7);
                 Utils::saveFile(filename, fileData);
             }
         }
@@ -344,7 +346,7 @@ std::string Client::handleErrorResponse(std::string error)
         if (!errorPage.empty())
             htmlContent = Utils::readFile(root + errorPage);
         else
-            htmlContent = Utils::generateErrorPage(error);
+            htmlContent = error;
 
         if (htmlContent.empty())
             throw std::runtime_error("Failed to read html file.");

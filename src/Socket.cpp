@@ -144,14 +144,14 @@ void Socket::launchServer()
 
 void    Socket::handleClient(int &clientFd, Client client)
 {
-    size_t i = client.getMaxBodySize();
+    size_t maxSize = client.getMaxBodySize();
     client.setTimeLastRequest();
-    char buffer[i];
-    int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
+    std::string request = "";
+    int bytes_receiv = this->receiveData(clientFd, request, maxSize);
     if (bytes_receiv > 0)
     {
 
-        if (this->processingRequest(buffer, bytes_receiv, clientFd, client))
+        if (this->processingRequest(request, bytes_receiv, clientFd, client))
             return ;
     }
     else  
@@ -180,11 +180,12 @@ void    Socket::handleClient(int &clientFd, Client client)
     }
 }
 
-int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Client client)
+int Socket::processingRequest(std::string request, int bytes_receive, int clientFd, Client client)
 {
-    buffer[bytes_receive] = '\0';
-    // Trouver une solution pour les plus groses requetes comment un upload -> segfault
-    std::string request(buffer);
+    (void)bytes_receive;
+    // buffer[bytes_receive] = '\0';
+    // // Trouver une solution pour les plus groses requetes comment un upload -> segfault
+    // std::string request(buffer);
     std::string response;
     try {
         client.parseRequest(request);
@@ -264,23 +265,27 @@ int Socket::sendData(int target_sock, const char *data, unsigned int len)
     return res;
 }
 
-int Socket::receiveData(int target_sock, char *buffer, unsigned int len)
+int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
 {
+    char buffer[len];
     if (target_sock < 0)
     {
         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
         return -1;
     }
-    int receiv = 0;
+    int totalReceived = 0;
     int res = 0;
     while (true)
     {
-        receiv = recv(target_sock, buffer, len, 0);
-        res += receiv;
-        if (receiv <= 0)
+        res = recv(target_sock, buffer, len, 0);
+        if (res > 0){
+            request.append(buffer, res);
+            totalReceived += res;
+        }
+        if (res <= 0)
             break;
     }
-    return res;
+    return totalReceived;
 }
 
 Socket* Socket::getInstance()

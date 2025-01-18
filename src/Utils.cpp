@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/18 20:09:46 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/18 20:25:17 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,20 +115,20 @@ std::string Utils::readFile(std::string filename)
     return buffer;
 }
 
-std::string Utils::generateErrorPage(std::string error)
-{
-    std::string buffer;
-    buffer =    "<!DOCTYPE html>\n"
-                "<html>\n"
-                "<head>\n"
-                "    <title>" + error + "</title>\n"
-                "</head>\n"
-                "<body>\n"
-                "    <p><b>" + error + "</b></p>\n"
-                "</body>\n"
-                "</html>\n";
-    return buffer;
-}
+// std::string Utils::generateErrorPage(std::string error)
+// {
+//     std::string buffer;
+//     buffer =    "<!DOCTYPE html>\n"
+//                 "<html>\n"
+//                 "<head>\n"
+//                 "    <title>" + error + "</title>\n"
+//                 "</head>\n"
+//                 "<body>\n"
+//                 "    <p><b>" + error + "</b></p>\n"
+//                 "</body>\n"
+//                 "</html>\n";
+//     return buffer;
+// }
 
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
     std::ofstream outFile("/Users/victor/Desktop/19_WebServ/document/" + filename, std::ios::binary);
