@@ -130,12 +130,14 @@ void Client::setRequest(std::string requestStr, std::string location, std::strin
             if (pos != std::string::npos)
                 temp.setBoundary(line.substr(pos + 9));
             if (!line.empty() && line[line.size() - 1] == '\r')
-                line.substr(0, line.size() - 2);
+                line = line.substr(0, line.size() - 1);
+            std::cout << line << std::endl;
             if (line.empty())
                 break;
         }
-        while (getline(ss, line))
+        while (getline(ss, line)) {
             body += (line + '\n');
+        }
         temp.setContent(body);
     }
     this->_request = temp;
@@ -299,12 +301,11 @@ void Client::postContent()
     std::string delimiter = "--" + _request.getBoundary();
     size_t start = 0, end = 0;
     std::string body = _request.getContent();
-
-    while ((start = body.find(delimiter, end)) != std::string::npos) {
-        start += delimiter.size() + 2;
+    start = body.find(delimiter, end);
+    while (start != std::string::npos) {
+        start += delimiter.size() + 1;
         end = body.find(delimiter, start);
         std::string part = body.substr(start, end - start);
-
         if (part.find("Content-Disposition: form-data;") != std::string::npos) {
             size_t filenamePos = part.find("filename=");
             if (filenamePos != std::string::npos) {
@@ -313,11 +314,11 @@ void Client::postContent()
                 std::string filename = part.substr(nameStart, nameEnd - nameStart);
 
                 size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
-                std::string fileData = part.substr(dataStart, part.size() - dataStart - 2);
-
+                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 5);
                 Utils::saveFile(filename, fileData);
             }
         }
+        start = body.find(delimiter, end);
     }
 }
 

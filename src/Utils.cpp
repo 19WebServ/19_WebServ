@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/18 01:23:51 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/18 20:09:46 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ std::string Utils::generateErrorPage(std::string error)
 }
 
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
-    std::ofstream outFile("/Users/victor/Desktop/19_WebServ/document" + filename, std::ios::binary);
+    std::ofstream outFile("/Users/victor/Desktop/19_WebServ/document/" + filename, std::ios::binary);
     if (!outFile) {
         throw std::runtime_error("Failed to open file for writing.");
     }
