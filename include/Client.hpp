@@ -12,6 +12,7 @@ class Client
 {
     public:
         Client(int ServerFd, int indexServerSock, int port, ServerConfig server);
+        Client();
         ~Client();
 
         int         getServerFd();
@@ -40,6 +41,8 @@ class Client
         std::string respondToPost();
         std::string respondToDelete();
         std::string handleErrorResponse(std::string);
+        std::string makeRedirection(std::string, std::string);
+        void        postContent();
         std::string executeCGI(const std::string& scriptPath);
 
 

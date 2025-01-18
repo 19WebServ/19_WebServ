@@ -20,6 +20,17 @@ ServerConfig::ServerConfig()
     _index = "";
 }
 
+ServerConfig::ServerConfig(const ServerConfig &copy)
+{
+    this->_port = copy._port;
+    this->_serverName = copy._serverName;
+    this->_errorPages = copy._errorPages;
+    this->_clientBodyLimit = copy._clientBodyLimit;
+    this->_root = copy._root;
+    this->_index = copy._index;
+    this->_routes = copy._routes;
+}
+
 ServerConfig::~ServerConfig()
 {
 }
@@ -176,8 +187,8 @@ void ServerConfig::checkMissigValues()
     for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
         if (it->second.root.empty())
             it->second.root = _root;
-        if (it->second.index.empty())
-            throw std::runtime_error("missing index page in " + it->first + " location block.");
+        // if (it->second.index.empty())
+        //     throw std::runtime_error("missing index page in " + it->first + " location block.");
     }
 }
 
@@ -230,7 +241,7 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
         os << "Root : " << it->second.root << std::endl;
         os << "Index : " << it->second.index << std::endl;
         os << "Dir listing : " << it->second.directoryListing << std::endl;
-        os << "Redir : " << it->second.redirect << std::endl;
+        os << "Redir : " << it->second.redirect.begin()->second << std::endl;
         os << "CGI : " << it->second.cgi << std::endl << "}" << std::endl; 
     }
     return os;
@@ -325,7 +336,7 @@ std::string ServerConfig::getLocationIndex(std::string location)
         throw std::runtime_error("404 Not Found");
 }
 
-std::string ServerConfig::getLocationRedirect(std::string location)
+std::map<std::string, std::string> ServerConfig::getLocationRedirect(std::string location)
 {
     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
     if (it != _routes.end())

@@ -37,7 +37,7 @@ class Socket
 
         void        closeFds(std::vector<int>serverSocks);
         void        acceptConnection(int serverSock, int i);
-        void        handleClient(int &clientFd, Client &client);
+        void        handleClient(int &clientFd, Client client);
         std::string getClientIP(struct sockaddr_in *client_addr);
         int         processingRequest(char *buffer, int bytes_receive, int clientFd, Client client);
         int         sendData(int target_sock, const char *data, unsigned int len);

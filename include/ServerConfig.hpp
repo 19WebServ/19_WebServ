@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/16 13:26:23 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/17 23:22:53 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ struct RouteSettings {
     std::string root;
     bool directoryListing;
     std::string index;
-    std::string redirect;
+    std::map<std::string, std::string> redirect;
     std::string cgi;
 };
 
@@ -45,6 +45,7 @@ private:
 
 public:
     ServerConfig();
+    ServerConfig(const ServerConfig &);
     ~ServerConfig();
 
     void extractPort(std::string);
@@ -68,7 +69,7 @@ public:
     std::string getLocationRoot(std::string);
     bool getLocationDirectoryListing(std::string);
     std::string getLocationIndex(std::string);
-    std::string getLocationRedirect(std::string);
+    std::map<std::string, std::string> getLocationRedirect(std::string);
     std::string getLocationCgi(std::string);
     
 

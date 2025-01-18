@@ -142,7 +142,7 @@ void Socket::launchServer()
     }
 }
 
-void    Socket::handleClient(int &clientFd, Client &client)
+void    Socket::handleClient(int &clientFd, Client client)
 {
     size_t i = client.getMaxBodySize();
     client.setTimeLastRequest();
@@ -150,6 +150,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
     int bytes_receiv = this->receiveData(clientFd, buffer, sizeof(buffer));
     if (bytes_receiv > 0)
     {
+
         if (this->processingRequest(buffer, bytes_receiv, clientFd, client))
             return ;
     }
@@ -182,6 +183,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
 int Socket::processingRequest(char *buffer, int bytes_receive, int clientFd, Client client)
 {
     buffer[bytes_receive] = '\0';
+    // Trouver une solution pour les plus groses requetes comment un upload -> segfault
     std::string request(buffer);
     std::string response;
     try {

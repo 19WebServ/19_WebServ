@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:23:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/16 13:14:13 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/17 23:44:53 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ void initRouteBlock(RouteSettings &routeBlock)
     routeBlock.root = "";
     routeBlock.directoryListing = false;
     routeBlock.index = "";
-    routeBlock.redirect = "";
     routeBlock.cgi = "";
 }
 
@@ -178,15 +177,17 @@ void extractRouteRedir(RouteSettings &route, std::string setting)
 {
     std::istringstream ss;
     std::string word;
+    std::string statusCode;
 
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
-    if (word != "301")
-        throw std::runtime_error("status code is not '301'");
+    if (word != "301" && word != "302")
+        throw std::runtime_error("Invalid redirection status code.");
+    statusCode = word;
     getline(ss, word, ' ');
     if (!ss.eof())
-        throw std::runtime_error("Too much redirections.");
-    else
-        route.redirect = word; 
+        throw std::runtime_error("Too much redirections parameters.");
+    else if (route.redirect.empty())
+        route.redirect[statusCode] = word;
 }
