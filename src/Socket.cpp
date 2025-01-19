@@ -101,13 +101,15 @@ void Socket::launchServer()
         for (size_t i = 0; i < this->_poll_fds.size(); i++)
         {
             int fd = this->_poll_fds[i].fd;
-            if (this->_poll_fds[i].revents & POLLHUP)
+            if (this->_poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
             {
+                std::cout << "POLLHUP detected" << std::endl;
                 close(fd);
                 for (size_t j = 0; j < this->_clients.size(); j++)
                 {
                     if (this->_clients[j].getClientFd() == fd)
                     {
+                        std::cout<< "Client Disconnected" << std::endl;
                         this->_clients.erase(this->_clients.begin() + j);
                         break;
                     }
