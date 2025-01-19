@@ -111,7 +111,23 @@ print <<'HTML';
                 subject + ' ' + verb + ' ' + complement + '.',
                 subject + ' adore ' + verb + ' ' + complement + '.',
                 'Parfois, ' + subject + ' ' + verb + ' aussi ' + complement + '.',
-                'Il arrive que ' + subject + ' ' + verb + ' tranquillement ' + complement + '.'
+                'Il arrive que ' + subject + ' ' + verb + ' tranquillement ' + complement + '.',
+                subject + ' n\'a jamais cesse de ' + verb + ' ' + complement + '.',
+                subject + ' aime bien ' + verb + ' ' + complement + ' tous les jours.',
+                'Un jour, ' + subject + ' a decide de ' + verb + ' ' + complement + '.',
+                subject + ' ne peut pas s\'empecher de ' + verb + ' ' + complement + '.',
+                'Chaque matin, ' + subject + ' commence par ' + verb + ' ' + complement + '.',
+                subject + ' trouve du plaisir a ' + verb + ' ' + complement + '.',
+                'Pourquoi ' + subject + ' veut-il toujours ' + verb + ' ' + complement + ' ?',
+                subject + ' ne sait pas comment arreter de ' + verb + ' ' + complement + '.',
+                'Hier encore, ' + subject + ' etait en train de ' + verb + ' ' + complement + '.',
+                'Tout le monde sait que ' + subject + ' adore ' + verb + ' ' + complement + '.',
+                subject + ' pretend ne pas aimer ' + verb + ' ' + complement + ', mais c\'est faux.',
+                'Dans ses reves, ' + subject + ' ' + verb + ' ' + complement + ' sans arret.',
+                'Meme sous la pluie, ' + subject + ' continue de ' + verb + ' ' + complement + '.',
+                subject + ' essaye toujours de mieux ' + verb + ' ' + complement + '.',
+                'Il parait que ' + subject + ' ne sait pas bien ' + verb + ' ' + complement + '.',
+                'Avec un peu d\'effort, ' + subject + ' pourrait ' + verb + ' ' + complement + ' encore mieux.'
             ];
 
             var randomSentence = phrases[Math.floor(Math.random() * phrases.length)];
@@ -132,6 +148,7 @@ print <<'HTML';
             <li><a href="/">Accueil</a></li>
             <li><a href="/televers">Televers</a></li>
             <li><a href="/cgi">CGI</a></li>
+            <li><a href="/redirect">Redirect</a></li>
         </ul>
     </nav>
 

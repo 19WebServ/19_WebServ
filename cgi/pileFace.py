@@ -143,6 +143,7 @@ html = """<!DOCTYPE html>
             <li><a href="/">Accueil</a></li>
             <li><a href="/televers">Téléverser</a></li>
             <li><a href="/cgi">CGI</a></li>
+            <li><a href="/redirect">Redirect</a></li>
         </ul>
     </nav>
 
