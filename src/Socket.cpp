@@ -89,56 +89,78 @@ void Socket::closeFds(std::vector<int>serverSocks)
 
 void Socket::launchServer()
 {
-    while (1)
+    while (true)
     {
         int event_count = poll(this->_poll_fds.data(), this->_poll_fds.size(), 1000);
         if (event_count < 0)
         {
-            std::cerr << "Error\n Poll failed" << std::endl;
+            std::cerr << "Error: Poll failed" << std::endl;
             closeFds(this->_serverSocks);
+            return;
         }
         for (size_t i = 0; i < this->_poll_fds.size(); i++)
         {
-
-            if (this->_poll_fds[i].revents & POLLIN)
+            int fd = this->_poll_fds[i].fd;
+            if (this->_poll_fds[i].revents & POLLHUP)
+            {
+                close(fd);
+                for (size_t j = 0; j < this->_clients.size(); j++)
+                {
+                    if (this->_clients[j].getClientFd() == fd)
+                    {
+                        this->_clients.erase(this->_clients.begin() + j);
+                        break;
+                    }
+                }
+                this->_poll_fds.erase(this->_poll_fds.begin() + i);
+                i--;
+                continue;
+            }
+            else if (this->_poll_fds[i].revents & POLLIN)
             {
                 bool newConnection = false;
                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
                 {
-                    if (this->_poll_fds[i].fd == this->_serverSocks[j])
+                    if (fd == this->_serverSocks[j])
                     {
-
                         acceptConnection(this->_serverSocks[j], i);
                         newConnection = true;
                         break;
                     }
                 }
-                if (newConnection == false)
+                if (!newConnection)
                 {
-                    size_t k = 0;
-                    for (; k < this->_clients.size(); k++)
+                    for (size_t k = 0; k < this->_clients.size(); k++)
                     {
-                        if (this->_clients[k].getClientFd() == this->_poll_fds[i].fd)
+                        if (this->_clients[k].getClientFd() == fd)
                         {
-                            handleClient(this->_poll_fds[i].fd, this->_clients[k]);
+                            handleClient(fd, this->_clients[k]);
                             break;
                         }
                     }
                 }
             }
-            size_t k = 0;
-            for (; k < this->_clients.size(); k++)
+        }
+        for (size_t k = 0; k < this->_clients.size(); k++)
+        {
+            if (getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
             {
-                if (getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
+                int fd = this->_clients[k].getClientFd();
+                std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
+
+                close(fd);
+                this->_clients.erase(this->_clients.begin() + k);
+                for (size_t i = 0; i < this->_poll_fds.size(); i++)
                 {
-                    std::cout << "Client "<<this->_clients[k].getIp() <<" Disconnected after '"<< this->_clients[k].getTimeout() << "' secondes of inactivity" << std::endl;
-                    close(this->_clients[k].getClientFd());
-                    this->_clients.erase(this->_clients.begin() + k);
-                    break;
+                    if (this->_poll_fds[i].fd == fd)
+                    {
+                        this->_poll_fds.erase(this->_poll_fds.begin() + i);
+                        break;
+                    }
                 }
+                k--;
             }
         }
-        
     }
 }
 
@@ -208,6 +230,7 @@ int Socket::processingRequest(std::string request, int bytes_receive, int client
             break;
         }
     }
+    std::cout << "AFTER RESPONSE" << std::endl;
     return 0;
 }
 
@@ -285,6 +308,7 @@ int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
         if (res <= 0)
             break;
     }
+    std::cout << "receive = " << totalReceived << std::endl;
     return totalReceived;
 }
 

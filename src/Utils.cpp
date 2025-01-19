@@ -131,7 +131,7 @@ std::string Utils::readFile(std::string filename)
 // }
 
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
-    std::ofstream outFile("/Users/victor/Desktop/19_WebServ/document/" + filename, std::ios::binary);
+    std::ofstream outFile("/Users/nicolasdessard/Desktop/webserv/19Webserv/19_WebServ/document/" + filename, std::ios::binary);
     if (!outFile) {
         throw std::runtime_error("Failed to open file for writing.");
     }

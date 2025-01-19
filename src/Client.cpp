@@ -101,7 +101,9 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << request << std::endl;
+    std::cout << "HOLA" << std::endl;
+    // std::cout << request << std::endl;
+    std::cout << "ICI" << std::endl;
     getline(ss, method, ' ');
     getline(ss, location, ' ');
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
@@ -183,7 +185,7 @@ std::string Client::respondToGet()
     std::string locationIndex = _server.getLocationIndex(_request.getLocation());
     std::string path = locationRoot + locationIndex;
     // std::cout << "Received from client "<< _ip << std::endl;
-    std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
+    // std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
     if (!_server.getLocationRedirect(_request.getLocation()).empty())
         response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
     else {
@@ -194,7 +196,7 @@ std::string Client::respondToGet()
         if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
             return executeCGI(path);
         
-        std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
+        // std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
         htmlContent = Utils::readFile(path);
         if (htmlContent.empty())
             throw std::runtime_error("Failed to read html file.");
