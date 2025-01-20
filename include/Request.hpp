@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 14:46:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/18 01:08:02 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/20 15:55:23 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ class Request
 {
 public:
     Request();
-    Request(std::string, std::string);
+    Request(std::string, std::string, std::string);
     ~Request();
 
     void setContent(std::string);
@@ -27,6 +27,7 @@ public:
     void setBoundary(std::string);
     std::string getMethod();
     std::string getLocation();
+    std::string getPath();
     std::string getContent();
     std::string getBoundary();
     size_t      getContentLen();
@@ -35,6 +36,7 @@ public:
 private:
     std::string _method;
     std::string _location;
+    std::string _path;
     std::string _content;
     size_t      _contentLen;
     std::string _contentType;

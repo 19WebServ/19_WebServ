@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/17 23:22:53 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/20 14:33:15 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class ServerConfig
 {
 private:
     int _port;
+    std::string _host;
     std::vector<std::string> _serverName;
     std::map<int, std::string> _errorPages;
     size_t _clientBodyLimit;
@@ -49,11 +50,12 @@ public:
     ~ServerConfig();
 
     void extractPort(std::string);
+    void extractHost(std::string);
     void extractServerName(std::string);
     void extractErrorPage(std::string);
     void extractMaxBodySize(std::string);
     void extractRoot(std::string);
-    void extractIndex(std::string);
+    // void extractIndex(std::string);
     void extractLocation(std::string);
     void checkIfValidPath();
     void checkMissigValues();
@@ -63,6 +65,7 @@ public:
     std::vector<std::string> getServerNames();
     std::string getErrorPage(int);
     std::string getRoot();
+    std::string getHost();
     std::string getIndex();
     std::vector<std::string> getLocationAllowedMethods(std::string);
     bool isAllowed(std::string, std::string);

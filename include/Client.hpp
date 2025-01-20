@@ -4,6 +4,7 @@
 # include <ctime>
 # include <sstream>
 # include <string>
+# include <dirent.h>
 # include "./ServerConfig.hpp"
 # include "./Request.hpp"
 # include "./Utils.hpp"
@@ -34,7 +35,7 @@ class Client
         // void    setRequest(std::string str);
 
         void    parseRequest(std::string);
-        void    setRequest(std::string, std::string, std::string);
+        void    setRequest(std::string, std::string, std::string, std::string);
         std::string    sendResponse();
 
         std::string respondToGet();
@@ -43,7 +44,8 @@ class Client
         std::string handleErrorResponse(std::string);
         std::string makeRedirection(std::string, std::string);
         void        postContent();
-        std::string displayDirList(std::string);
+        std::string listDir(std::string);
+        std::string displayList(std::vector<std::string>);
         std::string executeCGI(const std::string& scriptPath);
 
 

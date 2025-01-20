@@ -97,6 +97,7 @@ void    Client::parseRequest(std::string request)
     std::istringstream ss;
     ss.str(request);
     std::string method;
+    std::string path;
     std::string location;
     bool allowed = false;
 
@@ -104,10 +105,19 @@ void    Client::parseRequest(std::string request)
         return ;
     std::cout << request << std::endl;
     getline(ss, method, ' ');
-    getline(ss, location, ' ');
+    getline(ss, path, ' ');
+    ss.clear();
+    ss.str(path);
+    getline(ss, location, '/');                          // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
+    if (!ss.eof() && location.empty())
+        getline(ss, location, '/');
+    location = "/" + location;
+    path = path.substr(location.size());
+    if (!path.empty())
+        path = "/" + path;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
-            setRequest(request, location, method);
+            setRequest(request, location, method, path);
             allowed = true;
         }
     }
@@ -116,9 +126,9 @@ void    Client::parseRequest(std::string request)
 }
 
 // cree un objet requete avec les infos importantes du header et, si Post, recupere le body
-void Client::setRequest(std::string requestStr, std::string location, std::string method)
+void Client::setRequest(std::string requestStr, std::string location, std::string method, std::string path)
 {
-    Request temp(location, method);
+    Request temp(location, path, method);
 
     if (method == "POST") {
         std::istringstream ss;
@@ -184,10 +194,13 @@ std::string Client::respondToGet()
     std::string htmlContent;
     std::string response;
     std::string locationRoot = _server.getLocationRoot(_request.getLocation());
-    std::string locationIndex = _server.getLocationIndex(_request.getLocation());
+    std::string locationIndex;
+    std::cout << _request.getPath() << std::endl << std::endl;
+    if (_request.getPath().empty())
+        locationIndex = _server.getLocationIndex(_request.getLocation());
+    else
+        locationIndex = _request.getPath();
     std::string path = locationRoot + locationIndex;
-    // std::cout << "Received from client "<< _ip << std::endl;
-    // std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
     if (!_server.getLocationRedirect(_request.getLocation()).empty())
         response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
     else {
@@ -200,11 +213,15 @@ std::string Client::respondToGet()
             if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
                 return executeCGI(path);
         }
-        else {
+        else if (locationIndex.empty()) {
             if (_server.getLocationDirectoryListing(_request.getLocation()))
-                htmlContent = displayDirList(_server.getLocationRoot(_request.getLocation()));
+                htmlContent = listDir(_server.getLocationRoot(_request.getLocation()));
             else
                 throw std::runtime_error("403 Forbidden");
+        }
+        else {
+            response = makeRedirection("301", _server.getLocationIndex(_request.getLocation()));
+            return response;
         }
         response = 
             "HTTP/1.1 200 OK\r\n"
@@ -216,37 +233,50 @@ std::string Client::respondToGet()
             htmlContent;
     }
     return response;
-
-    //     if (!Utils::isFile(path)) {
-    //         if (_server.getLocationDirectoryListing(_request.getLocation()))
-    //             // displayDirList();
-    //         else
-    //             throw std::runtime_error("403 Forbidden");
-    //     }
-    //     else if (!Utils::hasReadPermission((path).c_str()))
-    //         throw std::runtime_error("403 Forbidden");
-    //     if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
-    //         return executeCGI(path);
-        
-    //     // std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
-    //     htmlContent = Utils::readFile(path);
-    //     if (htmlContent.empty())
-    //         throw std::runtime_error("Failed to read html file.");
-    //     response = 
-    //         "HTTP/1.1 200 OK\r\n"
-    //         "Content-Type: text/html\r\n"
-    //         "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
-    //         "Connection: keep-alive\r\n"
-    //         "Keep-Alive: timeout=10000\r\n"
-    //         "\r\n" +
-    //         htmlContent;
-    // }
-    // return response;
 }
 
-std::string Client::displayDirList(std::string root)
+std::string Client::listDir(std::string root)
 {
-    
+    std::vector<std::string> listing;
+    std::string htmlContent;
+    DIR* dir = opendir(root.c_str());
+    if (dir == NULL)
+        std::runtime_error("Could not open directory for listing.");
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+
+        if (name == "." || name == "..")
+            continue;
+        listing.push_back(name);
+    }
+    closedir(dir);
+    htmlContent = Client::displayList(listing);
+    return htmlContent;
+}
+
+std::string Client::displayList(std::vector<std::string> listing)
+{
+    std::string location = _request.getLocation();
+    std::string htmlContent;
+    "<!DOCTYPE html>\n"
+    "<html>\n"
+    "<head>\n"
+    "<title>" + location + "</title>\n"
+    "</head>\n"
+    "<body>\n"
+    "<h1>INDEX</h1>\n"
+    "<p>\n";
+
+    if (location[0] != '/')
+        location = "/" + location;
+    for (size_t i(0); i < listing.size(); i++)
+        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_server.getPort()) + location + "/" + listing[i] + "\">" + listing[i] + "</a></p>\n";
+    htmlContent +="\
+    </p>\n\
+    </body>\n\
+    </html>\n";
+    return htmlContent;
 }
 
 // reponse s'il s'agit d'une redirection

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/16 12:59:58 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/20 15:19:31 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void ConfigFile::splitStr(std::string &configStr, std::vector<std::string> &bloc
 // Check keywords for each line and send it to the appropriate function to exctract the relevant infos.
 void ConfigFile::parseServer(std::string serverStr)
 {
-    std::string keywords[7] = {"listen", "server_name", "error_page", "client_max_body_size", "root", "index", "location"};
+    std::string keywords[7] = {"listen", "server_name", "error_page", "client_max_body_size", "root", "host", "location"};
     std::string word;
     std::string settings;
     std::istringstream line;
@@ -150,9 +150,9 @@ void ConfigFile::parseServer(std::string serverStr)
             server.extractRoot(settings);
             break;
         case 5:
-        //     /* index */
+             /* host */
             settings = Utils::trimLine(serverStr, ';');
-        //     server.extractIndex(settings);
+            server.extractHost(settings);
             break;
         case 6:
             /* routes */

@@ -14,7 +14,8 @@
 
 ServerConfig::ServerConfig()
 {
-    _port = 8080;
+    _port = 0;
+    _host = "loaclhost";
     _clientBodyLimit = 1000;
     _root = "";
     _index = "";
@@ -23,6 +24,7 @@ ServerConfig::ServerConfig()
 ServerConfig::ServerConfig(const ServerConfig &copy)
 {
     this->_port = copy._port;
+    this->_host = copy._host;
     this->_serverName = copy._serverName;
     this->_errorPages = copy._errorPages;
     this->_clientBodyLimit = copy._clientBodyLimit;
@@ -135,23 +137,53 @@ void ServerConfig::extractRoot(std::string setting)
         _root = word;
 }
 
-void ServerConfig::extractIndex(std::string setting)
+void    ServerConfig::extractHost(std::string setting)
 {
     std::istringstream ss;
     std::string word;
+    std::string ip;
 
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
     if (word.empty())
-        throw std::runtime_error("missing index page.");
+        throw std::runtime_error("missing host.");
     if (!ss.eof())
-        throw std::runtime_error("More than 1 error page.");
-    if (Utils::isPath(word))
-        _index = word;
-    else
-        _index = "/" + word;
+        throw std::runtime_error("More than 1 host.");
+    else if (word == "localhost")
+        _host = word;
+    else {
+        ip = word;
+        ss.clear();
+        ss.str(ip);
+        for (int i(0); i < 4; i++) {
+            getline(ss, word, '.');
+            if (!Utils::areOnlyDigits(word) || word.size() > 3 || word.size() < 1 || atoi(word.c_str()) < 0 || atoi(word.c_str()) > 255)
+                throw std::runtime_error("Invalid host");
+        }
+        if (!ss.eof())
+            throw std::runtime_error("Invalid host");
+        _host = ip;
+    }
 }
+
+// void ServerConfig::extractIndex(std::string setting)
+// {
+//     std::istringstream ss;
+//     std::string word;
+
+//     ss.str(setting);
+//     getline(ss, word, ' ');
+//     getline(ss, word, ' ');
+//     if (word.empty())
+//         throw std::runtime_error("missing index page.");
+//     if (!ss.eof())
+//         throw std::runtime_error("More than 1 error page.");
+//     if (Utils::isPath(word))
+//         _index = word;
+//     else
+//         _index = "/" + word;
+// }
 
 void ServerConfig::extractLocation(std::string setting)
 {
@@ -169,6 +201,8 @@ void ServerConfig::extractLocation(std::string setting)
     if (!Utils::isPath(word))
         throw std::runtime_error("invalid route.");
     route = word;
+    if (route[0] != '/')
+        route = "/" + route;
     getline(ss, word, ' ');
     if (word != "{")
         throw std::runtime_error("missing open bracket after route declaration.");
@@ -178,6 +212,8 @@ void ServerConfig::extractLocation(std::string setting)
 
 void ServerConfig::checkMissigValues()
 {
+    if (_port == 0)
+        throw std::runtime_error("missing port.");
     if (_serverName.empty())
         throw std::runtime_error("missing a server name.");
     if (_root.empty())
@@ -279,6 +315,11 @@ std::string ServerConfig::getErrorPage(int errorNo)
 std::string ServerConfig::getRoot()
 {
     return _root;
+}
+
+std::string ServerConfig::getHost()
+{
+    return _host;
 }
 
 std::string ServerConfig::getIndex()

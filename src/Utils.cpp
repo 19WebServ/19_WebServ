@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/19 17:21:05 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/20 14:20:28 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ std::string Utils::intToStr(int len)
 // }
 
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
-    std::ofstream outFile("/Users/nicolasdessard/Desktop/webserv/19Webserv/19_WebServ/document/" + filename, std::ios::binary);
+    std::ofstream outFile(("./document/" + filename).c_str(), std::ios::binary);
     if (!outFile) {
         throw std::runtime_error("Failed to open file for writing.");
     }

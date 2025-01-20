@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <fstream>
 
-Socket* Socket::_instance = nullptr;
+Socket* Socket::_instance = NULL;
 
 Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server) : _ports(ports) , _servers(server)
 {
