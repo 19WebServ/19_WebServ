@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pile ou Face</title>
+    <title>Liste des fichiers</title>
     <style>
         /* Styles communs */
         * {
@@ -91,7 +91,7 @@
 <body>
     <!-- Bannière -->
     <div class="banner">
-        Jouez avec les CGI !
+        Liste des fichiers disponibles
     </div>
 
     <!-- Menu -->
@@ -107,20 +107,41 @@
 
     <!-- Contenu principal -->
     <main>
-        <h2>Cliquez sur le bouton pour lancer Pile ou Face</h2>
-        <div class="button-container">
-            <form action="/cgi/pileFace.py" method="GET">
-                <button type="submit">Pile ou Face</button>
-            </form>
-            <form action="/cgi/cgiPearl.pl" method="GET">
-                <button type="submit">Générateur</button>
-            </form>
-        </div>
+        <h2>Liste des fichiers dans le répertoire</h2>
+        <ul id="fileList"></ul>
     </main>
 
     <!-- Pied de page -->
     <footer>
         &copy; 2024 Mon Site Web. Tous droits réservés.
     </footer>
+
+    <script>
+        async function fetchFiles() {
+            try {
+                const response = await fetch('/download');  // Fait une requête au serveur
+                if (!response.ok) throw new Error('Erreur lors du chargement');
+                const files = await response.json();
+
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';  // Vide la liste avant de la remplir
+                
+                if (files.length === 0) {
+                    fileList.innerHTML = '<li>Aucun fichier trouvé.</li>';
+                } else {
+                    files.forEach(function(file) {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        fileList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('fileList').innerHTML = '<li>Erreur de chargement</li>';
+            }
+        }
+
+        fetchFiles();  // Charge la liste au démarrage
+    </script>
 </body>
 </html>

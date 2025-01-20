@@ -141,7 +141,8 @@ html = """<!DOCTYPE html>
     <nav>
         <ul>
             <li><a href="/">Accueil</a></li>
-            <li><a href="/televers">Téléverser</a></li>
+            <li><a href="/upload">Upload</a></li>
+            <li><a href="/download">Download</a></li>
             <li><a href="/cgi">CGI</a></li>
             <li><a href="/redirect">Redirect</a></li>
         </ul>

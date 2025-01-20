@@ -198,7 +198,6 @@ std::string Client::respondToGet()
             throw std::runtime_error("403 Forbidden");
         if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
             return executeCGI(path);
-        
         // std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
         htmlContent = Utils::readFile(path);
         if (htmlContent.empty())
@@ -291,16 +290,9 @@ std::string Client::respondToPost()
 {
     std::string response;
     postContent();
-    // response =
-    //     "HTTP/1.1 201 Created\r\n"
-    //     "Content-Type: text/plain\r\n"
-    //     "Content-Length: 19\r\n"
-    //     "Connection: close\r\n"
-    //     "\r\n"
-    //     "File upload success";
     response =
          "HTTP/1.1 303 See Other\r\n"
-        "Location: /televers?success\r\n"
+        "Location: /uplaod?success\r\n"
         "Content-Length: 0\r\n"
         "Connection: close\r\n"
         "\r\n";

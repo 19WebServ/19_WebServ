@@ -102,10 +102,15 @@ print <<'HTML';
         }
     </style>
     <script>
-        function generateSentence() {
-            var subject = document.getElementById('subject').value || 'Le chat';
-            var verb = document.getElementById('verb').value || 'mange';
-            var complement = document.getElementById('complement').value || 'une pomme';
+    function generateSentence() {
+            var subject = document.getElementById('subject').value.trim();
+            var verb = document.getElementById('verb').value.trim();
+            var complement = document.getElementById('complement').value.trim();
+
+            if (subject === "" || verb === "" || complement === "") {
+                alert("Merci de completer tous les champs.");
+                return;
+            }
 
             var phrases = [
                 subject + ' ' + verb + ' ' + complement + '.',
@@ -146,7 +151,8 @@ print <<'HTML';
     <nav>
         <ul>
             <li><a href="/">Accueil</a></li>
-            <li><a href="/televers">Televers</a></li>
+            <li><a href="/upload">Upload</a></li>
+            <li><a href="/download">Download</a></li>
             <li><a href="/cgi">CGI</a></li>
             <li><a href="/redirect">Redirect</a></li>
         </ul>
