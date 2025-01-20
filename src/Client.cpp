@@ -113,8 +113,8 @@ void    Client::parseRequest(std::string request)
         getline(ss, location, '/');
     location = "/" + location;
     path = path.substr(location.size());
-    if (!path.empty())
-        path = "/" + path;
+    // if (!path.empty())
+    //     path = "/" + path;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             setRequest(request, location, method, path);
@@ -204,14 +204,14 @@ std::string Client::respondToGet()
     if (!_server.getLocationRedirect(_request.getLocation()).empty())
         response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
     else {
+        if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
+            return executeCGI(path.substr(0, path.size() - 1));
         if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
             if (htmlContent.empty())
                 throw std::runtime_error("Failed to read html file.");
-            if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
-                return executeCGI(path);
         }
         else if (locationIndex.empty()) {
             if (_server.getLocationDirectoryListing(_request.getLocation()))
