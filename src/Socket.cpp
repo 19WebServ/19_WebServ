@@ -103,7 +103,7 @@ void Socket::launchServer()
             int fd = this->_poll_fds[i].fd;
             if (this->_poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
             {
-                std::cout << "POLLHUP detected" << std::endl;
+                std::cout << "\n POLLHUP detected" << std::endl;
                 close(fd);
                 for (size_t j = 0; j < this->_clients.size(); j++)
                 {
@@ -232,7 +232,7 @@ int Socket::processingRequest(std::string request, int bytes_receive, int client
             break;
         }
     }
-    std::cout << "AFTER RESPONSE" << std::endl;
+    // std::cout << "AFTER RESPONSE" << std::endl;
     return 0;
 }
 
@@ -310,7 +310,7 @@ int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
         if (res <= 0)
             break;
     }
-    std::cout << "receive = " << totalReceived << std::endl;
+    // std::cout << "receive = " << totalReceived << std::endl;
     return totalReceived;
 }
 

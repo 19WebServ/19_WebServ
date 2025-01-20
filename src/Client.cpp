@@ -101,11 +101,14 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << "HOLA" << std::endl;
     // std::cout << request << std::endl;
-    std::cout << "ICI" << std::endl;
     getline(ss, method, ' ');
     getline(ss, location, ' ');
+    size_t arg = location.find('?');
+    if (arg != std::string::npos) {
+        location = location.substr(0, arg);
+    }
+    std::cout << "location = " << location << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             setRequest(request, location, method);
@@ -185,7 +188,7 @@ std::string Client::respondToGet()
     std::string locationIndex = _server.getLocationIndex(_request.getLocation());
     std::string path = locationRoot + locationIndex;
     // std::cout << "Received from client "<< _ip << std::endl;
-    // std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
+    std::cout <<"chemin : "<< locationRoot + locationIndex << std::endl;
     if (!_server.getLocationRedirect(_request.getLocation()).empty())
         response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
     else {
@@ -288,13 +291,19 @@ std::string Client::respondToPost()
 {
     std::string response;
     postContent();
+    // response =
+    //     "HTTP/1.1 201 Created\r\n"
+    //     "Content-Type: text/plain\r\n"
+    //     "Content-Length: 19\r\n"
+    //     "Connection: close\r\n"
+    //     "\r\n"
+    //     "File upload success";
     response =
-        "HTTP/1.1 201 Created\r\n"
-        "Content-Type: text/plain\r\n"
-        "Content-Length: 19\r\n"
+         "HTTP/1.1 303 See Other\r\n"
+        "Location: /televers?success\r\n"
+        "Content-Length: 0\r\n"
         "Connection: close\r\n"
-        "\r\n"
-        "File upload success";
+        "\r\n";
     return response;
 }
 
