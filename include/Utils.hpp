@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/18 20:25:22 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/19 17:19:25 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ namespace Utils
     bool hasRootDirectoryAccess(const char* dirPath);
     std::string readFile(std::string filename);
     // std::string generateErrorPage(std::string);
+    std::string intToStr(int);
     void saveFile(const std::string& filename, const std::string& fileData);
 }
 

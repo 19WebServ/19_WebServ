@@ -43,6 +43,7 @@ class Client
         std::string handleErrorResponse(std::string);
         std::string makeRedirection(std::string, std::string);
         void        postContent();
+        std::string displayDirList(std::string);
         std::string executeCGI(const std::string& scriptPath);
 
 

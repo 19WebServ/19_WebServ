@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/18 20:25:17 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/19 17:21:05 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,13 @@ std::string Utils::readFile(std::string filename)
         return "";
     file.close();
     return buffer;
+}
+
+std::string Utils::intToStr(int len)
+{
+    std::ostringstream oss;
+    oss << len;
+    return oss.str();
 }
 
 // std::string Utils::generateErrorPage(std::string error)

@@ -91,6 +91,7 @@ std::string Client::getIp()
     return this->_ip;
 }
 
+// Recupère la methode et la location et accepte la requete si la methode est autorisee
 void    Client::parseRequest(std::string request)
 {
     std::istringstream ss;
@@ -101,9 +102,7 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << "HOLA" << std::endl;
-    // std::cout << request << std::endl;
-    std::cout << "ICI" << std::endl;
+    std::cout << request << std::endl;
     getline(ss, method, ' ');
     getline(ss, location, ' ');
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
@@ -116,6 +115,7 @@ void    Client::parseRequest(std::string request)
         throw std::runtime_error("405 Method Not Allowed");
 }
 
+// cree un objet requete avec les infos importantes du header et, si Post, recupere le body
 void Client::setRequest(std::string requestStr, std::string location, std::string method)
 {
     Request temp(location, method);
@@ -145,6 +145,7 @@ void Client::setRequest(std::string requestStr, std::string location, std::strin
     this->_request = temp;
 }
 
+// dispatch la requete a la methode correspondante
 std::string    Client::sendResponse()
 {
     size_t index(0);
@@ -177,6 +178,7 @@ std::string    Client::sendResponse()
     return response;
 }
 
+// Reponse dans le cas d'une requete GET
 std::string Client::respondToGet()
 {
     std::string htmlContent;
@@ -189,32 +191,65 @@ std::string Client::respondToGet()
     if (!_server.getLocationRedirect(_request.getLocation()).empty())
         response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
     else {
-        if (!Utils::isFile(path))
-            throw std::runtime_error("404 Not Found");
-        else if (!Utils::hasReadPermission((path).c_str()))
-            throw std::runtime_error("403 Forbidden");
-        if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
-            return executeCGI(path);
-        
-        // std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
-        htmlContent = Utils::readFile(path);
-        if (htmlContent.empty())
-            throw std::runtime_error("Failed to read html file.");
-        std::ostringstream oss;
-        oss << htmlContent.size();
-        std::string contentLength = oss.str();
+        if (Utils::isFile(path)) {
+            if (!Utils::hasReadPermission((path).c_str()))
+                throw std::runtime_error("403 Forbidden");
+            htmlContent = Utils::readFile(path);
+            if (htmlContent.empty())
+                throw std::runtime_error("Failed to read html file.");
+            if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
+                return executeCGI(path);
+        }
+        else {
+            if (_server.getLocationDirectoryListing(_request.getLocation()))
+                htmlContent = displayDirList(_server.getLocationRoot(_request.getLocation()));
+            else
+                throw std::runtime_error("403 Forbidden");
+        }
         response = 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/html\r\n"
-            "Content-Length: " + contentLength + "\r\n"
+            "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"
             "\r\n" +
             htmlContent;
     }
     return response;
+
+    //     if (!Utils::isFile(path)) {
+    //         if (_server.getLocationDirectoryListing(_request.getLocation()))
+    //             // displayDirList();
+    //         else
+    //             throw std::runtime_error("403 Forbidden");
+    //     }
+    //     else if (!Utils::hasReadPermission((path).c_str()))
+    //         throw std::runtime_error("403 Forbidden");
+    //     if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
+    //         return executeCGI(path);
+        
+    //     // std::cout << "Location Index: " << locationIndex << " Location Root: " << std::endl; 
+    //     htmlContent = Utils::readFile(path);
+    //     if (htmlContent.empty())
+    //         throw std::runtime_error("Failed to read html file.");
+    //     response = 
+    //         "HTTP/1.1 200 OK\r\n"
+    //         "Content-Type: text/html\r\n"
+    //         "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
+    //         "Connection: keep-alive\r\n"
+    //         "Keep-Alive: timeout=10000\r\n"
+    //         "\r\n" +
+    //         htmlContent;
+    // }
+    // return response;
 }
 
+std::string Client::displayDirList(std::string root)
+{
+    
+}
+
+// reponse s'il s'agit d'une redirection
 std::string Client::makeRedirection(std::string statusCode, std::string redirection)
 {
     std::string response = 
@@ -271,19 +306,16 @@ std::string Client::executeCGI(const std::string& scriptPath) {
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
         throw std::runtime_error("500 Internal Server Error: CGI script failed");
 
-    std::ostringstream oss;
-    oss << output.size();
-    std::string contentLength = oss.str();
-
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
-           "Content-Length: " + contentLength + "\r\n"
+           "Content-Length: " + Utils::intToStr(output.size()) + "\r\n"
            "Connection: keep-alive\r\n"
            "Keep-Alive: timeout=10000\r\n"
            "\r\n" +
            output;
 }
 
+// Reponse dans le cas d'une requete POST
 std::string Client::respondToPost()
 {
     std::string response;
@@ -298,6 +330,7 @@ std::string Client::respondToPost()
     return response;
 }
 
+// Scinde le body grace au delimteur et envoie les infos necessaires a la fonction saveFile
 void Client::postContent()
 {
     std::string delimiter = "--" + _request.getBoundary();
@@ -331,6 +364,7 @@ void Client::postContent()
     
 // }
 
+// Repond en cas d'erreur, avec la page html correspondante ou une page par defaut si aucune n'a eete specifiee
 std::string Client::handleErrorResponse(std::string error)
 {
     std::string word;
@@ -352,14 +386,11 @@ std::string Client::handleErrorResponse(std::string error)
 
         if (htmlContent.empty())
             throw std::runtime_error("Failed to read html file.");
-        std::ostringstream oss;
-        oss << htmlContent.size();
-        std::string contentLength = oss.str();
 
         response =
         "HTTP/1.1 " + error + "\r\n"
         "Content-Type: text/html; charset=UTF-8\r\n"
-        "Content-Length: " + contentLength + "\r\n"
+        "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
         "Connection: close\r\n"
         "\r\n" +
         htmlContent;
