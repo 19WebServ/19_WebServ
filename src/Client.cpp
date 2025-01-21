@@ -5,91 +5,12 @@ Client::Client(int serverFd, int indexServerSock, int port, ServerConfig server)
     this->_maxBodySize = this->_server.getBodySize();
 }
 
-Client::Client()
-{}
+Client::Client(){}
+
+Client::~Client(){}
 
 
-Client::~Client()
-{}
-
-void Client::setIp(std::string ip)
-{
-    this->_ip = ip;
-}
-
-void Client::setClientFd(int clientFd)
-{
-    this->_clientFd = clientFd;
-}
-
-void Client::setIndexClientFd(size_t index)
-{
-    this->_indexClientFd = index;
-}
-
-void Client::setTimeout(size_t time)
-{
-    this->_timeout = time;
-}
-
-
-void Client::setTimeLastRequest()
-{
-    std::time_t currentTime = std::time(NULL);
-    if (currentTime != static_cast<std::time_t>(-1))
-    {
-        this->_timeLastRequest = static_cast<size_t>(currentTime);
-    }
-    else
-    {
-        std::cerr << "Error:\nFailed to set time of request" << std::endl;
-        this->_timeLastRequest = 0;
-    }
-}
-
-int Client::getServerFd()
-{
-    return this->_serverFd;
-}
-
-int Client::getClientFd()
-{
-    return this->_clientFd;
-}
-
-size_t Client::getIndexServerFd()
-{
-    return this->_indexServerFd;
-}
-size_t Client::getIndexClientFd()
-{
-    return this->_indexClientFd;
-}
-
-size_t Client::getMaxBodySize()
-{
-    return this->_maxBodySize;
-}
-
-int Client::getPort()
-{
-    return this->_port;
-}
-
-size_t Client::getTimeout()
-{
-    return this->_timeout;
-}
-
-size_t Client::getTimeLastRequest()
-{
-    return this->_timeLastRequest;
-}
-
-std::string Client::getIp()
-{
-    return this->_ip;
-}
+/* ---REQUEST--- */
 
 // Recupère la methode et la location et accepte la requete si la methode est autorisee
 void    Client::parseRequest(std::string request)
@@ -113,11 +34,9 @@ void    Client::parseRequest(std::string request)
         getline(ss, location, '/');
     location = "/" + location;
     path = path.substr(location.size());
-    // if (!path.empty())
-    //     path = "/" + path;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
-            setRequest(request, location, method, path);
+            createRequest(request, location, method, path);
             allowed = true;
         }
     }
@@ -126,7 +45,7 @@ void    Client::parseRequest(std::string request)
 }
 
 // cree un objet requete avec les infos importantes du header et, si Post, recupere le body
-void Client::setRequest(std::string requestStr, std::string location, std::string method, std::string path)
+void Client::createRequest(std::string requestStr, std::string location, std::string method, std::string path)
 {
     Request temp(location, path, method);
 
@@ -154,6 +73,9 @@ void Client::setRequest(std::string requestStr, std::string location, std::strin
     }
     this->_request = temp;
 }
+
+
+/* ---RESPONSE--- */
 
 // dispatch la requete a la methode correspondante
 std::string    Client::sendResponse()
@@ -235,6 +157,68 @@ std::string Client::respondToGet()
     return response;
 }
 
+// Reponse dans le cas d'une requete POST
+std::string Client::respondToPost()
+{
+    std::string response;
+    postContent();
+    response =
+        "HTTP/1.1 201 Created\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Length: 19\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "File upload success";
+    return response;
+}
+
+// std::string Client::respondToDelete()
+// {
+    
+// }
+
+// Scinde le body grace au delimteur et envoie les infos necessaires a la fonction saveFile
+void Client::postContent()
+{
+    std::string delimiter = "--" + _request.getBoundary();
+    size_t start = 0, end = 0;
+    std::string body = _request.getContent();
+    start = body.find(delimiter, end);
+    if (start == std::string::npos)
+        throw std::runtime_error("Boundary not found in body.");
+    while (start != std::string::npos) {
+        start += delimiter.size() + 1;
+        end = body.find(delimiter, start);
+        std::string part = body.substr(start, end - start);
+        if (part.find("Content-Disposition: form-data;") != std::string::npos) {
+            size_t filenamePos = part.find("filename=");
+            if (filenamePos != std::string::npos) {
+                size_t nameStart = part.find("\"", filenamePos) + 1;
+                size_t nameEnd = part.find("\"", nameStart);
+                std::string filename = part.substr(nameStart, nameEnd - nameStart);
+
+                size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
+                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 7);
+                Utils::saveFile(filename, fileData);
+            }
+        }
+        start = body.find(delimiter, end);
+    }
+}
+
+// reponse s'il s'agit d'une redirection
+std::string Client::makeRedirection(std::string statusCode, std::string redirection)
+{
+    std::string response = 
+        "HTTP/1.1 " + statusCode + " Found\r\n"
+        "Location: " + redirection + "\r\n"
+        "Content-Length: 0\r\n"
+        "Connection: keep-alive\r\n"
+        "Keep-Alive: timeout=10000\r\n"
+        "\r\n";
+    return response;
+}
+
 std::string Client::listDir(std::string root)
 {
     std::vector<std::string> listing;
@@ -278,24 +262,6 @@ std::string Client::displayList(std::vector<std::string> listing)
     </html>\n";
     return htmlContent;
 }
-
-// reponse s'il s'agit d'une redirection
-std::string Client::makeRedirection(std::string statusCode, std::string redirection)
-{
-    std::string response = 
-        "HTTP/1.1 " + statusCode + " Found\r\n"
-        "Location: " + redirection + "\r\n"
-        "Content-Length: 0\r\n"
-        "Connection: keep-alive\r\n"
-        "Keep-Alive: timeout=10000\r\n"
-        "\r\n";
-    return response;
-}
-
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 std::string Client::executeCGI(const std::string& scriptPath) {
     int pipefd[2];
@@ -345,55 +311,6 @@ std::string Client::executeCGI(const std::string& scriptPath) {
            output;
 }
 
-// Reponse dans le cas d'une requete POST
-std::string Client::respondToPost()
-{
-    std::string response;
-    postContent();
-    response =
-        "HTTP/1.1 201 Created\r\n"
-        "Content-Type: text/plain\r\n"
-        "Content-Length: 19\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "File upload success";
-    return response;
-}
-
-// Scinde le body grace au delimteur et envoie les infos necessaires a la fonction saveFile
-void Client::postContent()
-{
-    std::string delimiter = "--" + _request.getBoundary();
-    size_t start = 0, end = 0;
-    std::string body = _request.getContent();
-    start = body.find(delimiter, end);
-    if (start == std::string::npos)
-        throw std::runtime_error("Boundary not found in body.");
-    while (start != std::string::npos) {
-        start += delimiter.size() + 1;
-        end = body.find(delimiter, start);
-        std::string part = body.substr(start, end - start);
-        if (part.find("Content-Disposition: form-data;") != std::string::npos) {
-            size_t filenamePos = part.find("filename=");
-            if (filenamePos != std::string::npos) {
-                size_t nameStart = part.find("\"", filenamePos) + 1;
-                size_t nameEnd = part.find("\"", nameStart);
-                std::string filename = part.substr(nameStart, nameEnd - nameStart);
-
-                size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
-                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 7);
-                Utils::saveFile(filename, fileData);
-            }
-        }
-        start = body.find(delimiter, end);
-    }
-}
-
-// std::string Client::respondToDelete()
-// {
-    
-// }
-
 // Repond en cas d'erreur, avec la page html correspondante ou une page par defaut si aucune n'a eete specifiee
 std::string Client::handleErrorResponse(std::string error)
 {
@@ -430,4 +347,50 @@ std::string Client::handleErrorResponse(std::string error)
         std::exit(1); // JE SAIS PAS QUOI METTRE ICI
     }
     return response;
+}
+
+
+/* ---GETTERS--- */
+
+int Client::getServerFd() {return this->_serverFd;}
+
+int Client::getClientFd() {return this->_clientFd;}
+
+size_t Client::getIndexServerFd() {return this->_indexServerFd;}
+
+size_t Client::getIndexClientFd() {return this->_indexClientFd;}
+
+size_t Client::getMaxBodySize() {return this->_maxBodySize;}
+
+int Client::getPort() {return this->_port;}
+
+size_t Client::getTimeout() {return this->_timeout;}
+
+size_t Client::getTimeLastRequest() {return this->_timeLastRequest;}
+
+std::string Client::getIp() {return this->_ip;}
+
+
+/* ---SETTERS--- */
+
+void Client::setIp(std::string ip) {this->_ip = ip;}
+
+void Client::setClientFd(int clientFd) {this->_clientFd = clientFd;}
+
+void Client::setIndexClientFd(size_t index) {this->_indexClientFd = index;}
+
+void Client::setTimeout(size_t time) {this->_timeout = time;}
+
+void Client::setTimeLastRequest()
+{
+    std::time_t currentTime = std::time(NULL);
+    if (currentTime != static_cast<std::time_t>(-1))
+    {
+        this->_timeLastRequest = static_cast<size_t>(currentTime);
+    }
+    else
+    {
+        std::cerr << "Error:\nFailed to set time of request" << std::endl;
+        this->_timeLastRequest = 0;
+    }
 }

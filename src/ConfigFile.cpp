@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/20 15:19:31 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 17:35:06 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ std::ostream& operator<<(std::ostream& os, const ConfigFile& obj) {
     return os;
 }
 
-std::vector<ServerConfig> ConfigFile::getServer()
-{
-    return this->_servers;
-}
+
+/* ---GETTERS--- */
+
+std::vector<ServerConfig> ConfigFile::getServer() {return this->_servers;}

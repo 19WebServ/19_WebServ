@@ -21,20 +21,15 @@ class Socket
         ~Socket();
 
         void            launchServer();
+        static void     signalHandler(int signum);
+
+        /* ---GETTERS--- */
         int             getPort(int index);
         ServerConfig    getServer(int index);
         static Socket*  getInstance();
-        static void     signalHandler(int signum);
 
     private:
-        std::vector<int> _ports;
-        std::vector<int> _serverSocks;
-        std::vector<pollfd> _poll_fds;
-        std::vector<ServerConfig> _servers;
-        std::vector<Client> _clients;
-        static Socket*     _instance;
-
-
+        /* ---METHODS--- */
         void        closeFds(std::vector<int>serverSocks);
         void        acceptConnection(int serverSock, int i);
         void        handleClient(int &clientFd, Client client);
@@ -42,6 +37,12 @@ class Socket
         int         processingRequest(std::string request, int bytes_receive, int clientFd, Client client);
         int         sendData(int target_sock, const char *data, unsigned int len);
         int         receiveData(int target_sock, std::string &request, unsigned int len);
-};
 
-size_t getTime();
+        /* ---ATTRIBUTES--- */
+        std::vector<int> _ports;
+        std::vector<int> _serverSocks;
+        std::vector<pollfd> _poll_fds;
+        std::vector<ServerConfig> _servers;
+        std::vector<Client> _clients;
+        static Socket*     _instance;
+};

@@ -1,10 +1,28 @@
-#pragma once
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/21 17:32:17 by vdecleir          #+#    #+#             */
+/*   Updated: 2025/01/21 18:19:25 by vdecleir         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef CLIENT_HPP
+# define CLIENT_HPP
+
 # include <cstdlib>
 # include <iostream>
 # include <ctime>
 # include <sstream>
 # include <string>
 # include <dirent.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <unistd.h>
+# include <fcntl.h>
 # include "./ServerConfig.hpp"
 # include "./Request.hpp"
 # include "./Utils.hpp"
@@ -16,6 +34,7 @@ class Client
         Client();
         ~Client();
 
+        /* ---GETTERS--- */
         int         getServerFd();
         size_t      getIndexServerFd();
         int         getClientFd();
@@ -27,6 +46,7 @@ class Client
         std::string getIp();
         // std::string getRequestStr();
 
+        /* ---SETTERS--- */
         void    setIp(std::string ip);
         void    setClientFd(int clientFd);
         void    setIndexClientFd(size_t index);
@@ -34,22 +54,29 @@ class Client
         void    setTimeLastRequest();
         // void    setRequest(std::string str);
 
+        /* ---REQUEST--- */
         void    parseRequest(std::string);
-        void    setRequest(std::string, std::string, std::string, std::string);
-        std::string    sendResponse();
 
+        /* ---RESPONSE--- */
+        std::string sendResponse();
+        std::string handleErrorResponse(std::string);
+        
+    private:
+        /* ---REQUEST--- */
+        void    createRequest(std::string, std::string, std::string, std::string);
+        
+        /* ---RESPONSE--- */
         std::string respondToGet();
         std::string respondToPost();
         std::string respondToDelete();
-        std::string handleErrorResponse(std::string);
-        std::string makeRedirection(std::string, std::string);
+
         void        postContent();
+        std::string makeRedirection(std::string, std::string);
         std::string listDir(std::string);
         std::string displayList(std::vector<std::string>);
         std::string executeCGI(const std::string& scriptPath);
 
-
-    private:
+        /* ---ATTRIBUTES---*/
         ServerConfig    _server;
         Request         _request;
         int             _serverFd;
@@ -61,5 +88,6 @@ class Client
         int             _port;
         size_t          _timeLastRequest;
         size_t          _timeout;
-
 };
+
+#endif

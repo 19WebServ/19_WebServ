@@ -284,23 +284,13 @@ std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
 }
 
 
+/* ---GETTERS--- */
 
-// ------------------------GETTERS----------------------- //
+int ServerConfig::getPort() {return this->_port;}
 
-int ServerConfig::getPort()
-{
-    return this->_port;
-}
+size_t ServerConfig::getBodySize() {return this->_clientBodyLimit;}
 
-size_t ServerConfig::getBodySize()
-{
-    return this->_clientBodyLimit;
-}
-
-std::vector<std::string> ServerConfig::getServerNames()
-{
-    return _serverName;
-}
+std::vector<std::string> ServerConfig::getServerNames() {return _serverName;}
 
 std::string ServerConfig::getErrorPage(int errorNo)
 {
@@ -312,20 +302,11 @@ std::string ServerConfig::getErrorPage(int errorNo)
         return "";
 }
 
-std::string ServerConfig::getRoot()
-{
-    return _root;
-}
+std::string ServerConfig::getRoot() {return _root;}
 
-std::string ServerConfig::getHost()
-{
-    return _host;
-}
+std::string ServerConfig::getHost() {return _host;}
 
-std::string ServerConfig::getIndex()
-{
-    return _index;
-}
+std::string ServerConfig::getIndex() {return _index;}
 
 std::vector<std::string> ServerConfig::getLocationAllowedMethods(std::string location)
 {

@@ -62,31 +62,6 @@ Socket::~Socket()
     closeFds(this->_serverSocks);
 }
 
-void Socket::signalHandler(int signum)
-{
-    if (Socket::getInstance())
-    {
-        Socket::getInstance()->closeFds(Socket::getInstance()->_serverSocks);
-    }
-    exit(signum);
-}
-
-void Socket::closeFds(std::vector<int>serverSocks)
-{
-    for (size_t i = 0; i < serverSocks.size(); i++)
-    {
-        if (serverSocks[i] >= 0)
-        {
-            int error = 0;
-            socklen_t len = sizeof(error);
-            if (getsockopt(serverSocks[i], SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0)
-                std::cerr << "Socket error before closing: " << strerror(error) << std::endl;
-            close(serverSocks[i]);
-        }
-    }
-    std::cerr<< "\nAll server sockets closed" << std::endl;
-}
-
 void Socket::launchServer()
 {
     while (true)
@@ -145,7 +120,7 @@ void Socket::launchServer()
         }
         for (size_t k = 0; k < this->_clients.size(); k++)
         {
-            if (getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
+            if (Utils::getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
             {
                 int fd = this->_clients[k].getClientFd();
                 std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
@@ -164,6 +139,32 @@ void Socket::launchServer()
             }
         }
     }
+}
+
+void Socket::signalHandler(int signum)
+{
+    if (Socket::getInstance())
+    {
+        Socket::getInstance()->closeFds(Socket::getInstance()->_serverSocks);
+    }
+    exit(signum);
+}
+
+
+void Socket::closeFds(std::vector<int>serverSocks)
+{
+    for (size_t i = 0; i < serverSocks.size(); i++)
+    {
+        if (serverSocks[i] >= 0)
+        {
+            int error = 0;
+            socklen_t len = sizeof(error);
+            if (getsockopt(serverSocks[i], SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error != 0)
+                std::cerr << "Socket error before closing: " << strerror(error) << std::endl;
+            close(serverSocks[i]);
+        }
+    }
+    std::cerr<< "\nAll server sockets closed" << std::endl;
 }
 
 void    Socket::handleClient(int &clientFd, Client client)
@@ -204,15 +205,12 @@ void    Socket::handleClient(int &clientFd, Client client)
     }
 }
 
-int Socket::processingRequest(std::string request, int bytes_receive, int clientFd, Client client)
+int Socket::processingRequest(std::string requestStr, int bytes_receive, int clientFd, Client client)
 {
     (void)bytes_receive;
-    // buffer[bytes_receive] = '\0';
-    // // Trouver une solution pour les plus groses requetes comment un upload -> segfault
-    // std::string request(buffer);
     std::string response;
     try {
-        client.parseRequest(request);
+        client.parseRequest(requestStr);
         response = client.sendResponse();
     }
     catch(const std::exception& e) {
@@ -314,11 +312,6 @@ int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
     return totalReceived;
 }
 
-Socket* Socket::getInstance()
-{
-    return _instance;
-}
-
 std::string Socket::getClientIP(struct sockaddr_in *client_addr)
 {
     unsigned char *ip = reinterpret_cast<unsigned char *>(&(client_addr->sin_addr.s_addr));
@@ -330,23 +323,11 @@ std::string Socket::getClientIP(struct sockaddr_in *client_addr)
     return ss.str();
 }
 
-int Socket::getPort(int i)
-{
-    return this->_ports[i];
-}
 
-ServerConfig Socket::getServer(int index)
-{
-    return this->_servers[index];
-}
+/* ---GETTERS--- */
 
-size_t getTime()
-{
-    std::time_t currentTime = std::time(NULL);
-    size_t res = 0;
-    if (currentTime != static_cast<std::time_t>(-1))
-    {
-        res = static_cast<size_t>(currentTime);
-    }
-    return res;
-}
+Socket* Socket::getInstance() {return _instance;}
+
+int Socket::getPort(int i) {return this->_ports[i];}
+
+ServerConfig Socket::getServer(int index) {return this->_servers[index];}

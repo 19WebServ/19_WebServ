@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/20 14:20:28 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 17:42:04 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,4 +145,15 @@ void Utils::saveFile(const std::string& filename, const std::string& fileData) {
     outFile.write(fileData.c_str(), fileData.size());
     outFile.close();
     std::cout << "File saved: " << filename << std::endl;
+}
+
+size_t Utils::getTime()
+{
+    std::time_t currentTime = std::time(NULL);
+    size_t res = 0;
+    if (currentTime != static_cast<std::time_t>(-1))
+    {
+        res = static_cast<size_t>(currentTime);
+    }
+    return res;
 }

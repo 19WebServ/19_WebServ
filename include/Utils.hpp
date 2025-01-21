@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/20 14:19:53 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 17:41:59 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ namespace Utils
     // std::string generateErrorPage(std::string);
     std::string intToStr(int);
     void saveFile(const std::string& filename, const std::string& fileData);
+    size_t getTime();
 }
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/09 19:11:55 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 17:13:47 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,6 @@
 
 class ConfigFile
 {
-private:
-    //-----ATTRIBUTES-----//
-    std::vector<ServerConfig> _servers;
-
-    //-----METHODS-----//
-    void fileInStr(const std::string &, std::string &);
-    std::string cleanLine(std::string);
-    void splitStr(std::string &, std::vector<std::string> &);
-    void parseServer(std::string);
-    
 public:
     ConfigFile(const std::string &);
     ~ConfigFile();
@@ -38,6 +28,16 @@ public:
     std::vector<ServerConfig> getServer();
     
     friend std::ostream& operator<<(std::ostream& os, const ConfigFile& obj);
+    
+private:
+    /* ---METHODS--- */
+    void fileInStr(const std::string &, std::string &);
+    std::string cleanLine(std::string);
+    void splitStr(std::string &, std::vector<std::string> &);
+    void parseServer(std::string);
+    
+    /* --- ATTRIBUTES ---*/
+    std::vector<ServerConfig> _servers;
 };
 
 
