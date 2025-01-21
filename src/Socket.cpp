@@ -167,6 +167,47 @@ void Socket::closeFds(std::vector<int>serverSocks)
     std::cerr<< "\nAll server sockets closed" << std::endl;
 }
 
+void Socket::acceptConnection(int serverSock, int i) 
+{
+    Client client(serverSock, i, this->getPort(i),  this->getServer(i));
+    client.setTimeLastRequest();
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    int client_sock = accept(serverSock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
+    if (client_sock >= 0) 
+    {
+       if (fcntl(client_sock, F_SETFL, O_NONBLOCK) < 0)
+        {
+            std::cerr << "Error\nFailed non-blocking mode" << std::endl;
+            closeFds(this->_serverSocks);
+        }
+        std::string clientIP = getClientIP(&client_addr);
+        std::cout << "Client connected: " << clientIP << std::endl;
+
+        int error = 0;
+        socklen_t len = sizeof(error);
+        if (getsockopt(client_sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+            std::cerr << "Error: failed to retrieve socket error status for client." << std::endl;
+        else if (error != 0)
+        {
+            std::cerr << "Client socket has an error: " << strerror(error) << std::endl;
+            close(client_sock);
+        }
+        struct pollfd clientFd;
+
+        clientFd.fd = client_sock;
+        clientFd.events = POLLIN;
+        this->_poll_fds.push_back(clientFd);
+        client.setClientFd(client_sock);
+        client.setIndexClientFd(this->_poll_fds.size() - 1);
+        client.setIp(getClientIP(&client_addr));
+        client.setTimeout();
+        this->_clients.push_back(client);
+    }
+    else 
+        std::cerr << "Error\nFailed to accept client connection." << std::endl;
+}
+
 void    Socket::handleClient(int &clientFd, Client client)
 {
     size_t maxSize = client.getMaxBodySize();
@@ -232,47 +273,6 @@ int Socket::processingRequest(std::string requestStr, int bytes_receive, int cli
     }
     std::cout << "AFTER RESPONSE" << std::endl;
     return 0;
-}
-
-void Socket::acceptConnection(int serverSock, int i) 
-{
-    Client client(serverSock, i, this->getPort(i),  this->getServer(i));
-    client.setTimeLastRequest();
-    struct sockaddr_in client_addr;
-    socklen_t client_len = sizeof(client_addr);
-    int client_sock = accept(serverSock, reinterpret_cast<struct sockaddr*>(&client_addr), &client_len);
-    if (client_sock >= 0) 
-    {
-       if (fcntl(client_sock, F_SETFL, O_NONBLOCK) < 0)
-        {
-            std::cerr << "Error\nFailed non-blocking mode" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        std::string clientIP = getClientIP(&client_addr);
-        std::cout << "Client connected: " << clientIP << std::endl;
-
-        int error = 0;
-        socklen_t len = sizeof(error);
-        if (getsockopt(client_sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
-            std::cerr << "Error: failed to retrieve socket error status for client." << std::endl;
-        else if (error != 0)
-        {
-            std::cerr << "Client socket has an error: " << strerror(error) << std::endl;
-            close(client_sock);
-        }
-        struct pollfd clientFd;
-
-        clientFd.fd = client_sock;
-        clientFd.events = POLLIN;
-        this->_poll_fds.push_back(clientFd);
-        client.setClientFd(client_sock);
-        client.setIndexClientFd(this->_poll_fds.size() - 1);
-        client.setIp(getClientIP(&client_addr));
-        client.setTimeout();
-        this->_clients.push_back(client);
-    }
-    else 
-        std::cerr << "Error\nFailed to accept client connection." << std::endl;
 }
 
 int Socket::sendData(int target_sock, const char *data, unsigned int len)
