@@ -24,7 +24,7 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << request << std::endl;
+    std::cout << "\n" << request << std::endl;
     getline(ss, method, ' ');
     getline(ss, path, ' ');
     ss.clear();
@@ -34,6 +34,8 @@ void    Client::parseRequest(std::string request)
         getline(ss, location, '/');
     location = "/" + location;
     path = path.substr(location.size());
+    // if (method == "POST" && path.empty())
+    //     return ;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -115,20 +117,21 @@ std::string Client::respondToGet()
 {
     std::string htmlContent;
     std::string response;
-    std::string locationRoot = _server.getLocationRoot(_request.getLocation());
+    std::string locationBlock = _request.getLocation();
+    std::string locationRoot = _server.getLocationRoot(locationBlock);
     std::string locationIndex;
-    std::cout << _request.getPath() << std::endl << std::endl;
+
     if (_request.getPath().empty())
-        locationIndex = _server.getLocationIndex(_request.getLocation());
+        locationIndex = _server.getLocationIndex(locationBlock);
     else
         locationIndex = _request.getPath();
     std::string path = locationRoot + locationIndex;
-    if (!_server.getLocationRedirect(_request.getLocation()).empty())
-        response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
+    if (!_server.getLocationRedirect(locationBlock).empty())
+        response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
         if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
             return executeCGI(path.substr(0, path.size() - 1));
-        if (Utils::isFile(path)) {
+        else if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
@@ -136,18 +139,19 @@ std::string Client::respondToGet()
                 throw std::runtime_error("Failed to read html file.");
         }
         else if (locationIndex.empty()) {
-            if (_server.getLocationDirectoryListing(_request.getLocation()))
-                htmlContent = listDir(_server.getLocationRoot(_request.getLocation()));
+            if (_server.getLocationDirectoryListing(locationBlock))
+                htmlContent = listDir(_server.getLocationRoot(locationBlock));
             else
                 throw std::runtime_error("403 Forbidden");
         }
         else {
-            response = makeRedirection("301", _server.getLocationIndex(_request.getLocation()));
+            response = makeRedirection("301", _server.getLocationIndex(locationBlock));
             return response;
         }
         response = 
             "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html\r\n"
+            // "Content-Type: " + Utils::findType(locationIndex); + "\r\n"
+            "Content-Type: " + Utils::findType(locationIndex) + "\r\n"
             "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"

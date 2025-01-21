@@ -230,7 +230,7 @@ int Socket::processingRequest(std::string requestStr, int bytes_receive, int cli
             break;
         }
     }
-    std::cout << "AFTER RESPONSE" << std::endl;
+    // std::cout << "AFTER RESPONSE" << std::endl;
     return 0;
 }
 

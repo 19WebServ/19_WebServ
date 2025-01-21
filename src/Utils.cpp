@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:42:04 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 22:49:40 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,4 +156,28 @@ size_t Utils::getTime()
         res = static_cast<size_t>(currentTime);
     }
     return res;
+}
+
+std::string Utils::findType(std::string file)
+{
+    std::map<std::string, std::string> types;
+    types[".html"] = "text/html";
+    types[".htm"] = "text/html";
+    types[".jpg"] = "image/jpeg";
+    types[".jpeg"] = "image/jpeg";
+    types[".png"] = "image/png";
+    types[".gif"] = "image/gif";
+    types[".css"] = "text/css";
+    types[".js"]=  "applicatin/javascript";
+
+    size_t dotPos = file.find_last_of('.');
+    if (dotPos == std::string::npos)
+        return "text/html";
+
+    std::string extension = file.substr(dotPos);
+    std::map<std::string, std::string>::iterator it = types.find(extension);
+    if (it != types.end())
+        return it->second;
+
+    return "text/html";
 }

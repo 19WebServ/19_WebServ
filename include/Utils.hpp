@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:41:59 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 22:07:44 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <unistd.h>
 # include <fstream>
 # include <vector>
+# include <map>
 
 namespace Utils
 {
@@ -36,6 +37,7 @@ namespace Utils
     std::string intToStr(int);
     void saveFile(const std::string& filename, const std::string& fileData);
     size_t getTime();
+    std::string findType(std::string);
 }
 
 #endif
