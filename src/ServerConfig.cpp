@@ -313,31 +313,37 @@ std::vector<std::string> ServerConfig::getLocationAllowedMethods(std::string loc
     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
     if (it != _routes.end())
         return it->second.methods;
-    else
-        throw std::runtime_error("404 Not Found");
+    else {
+        std::vector<std::string> method;
+        method.push_back("GET");
+        return method;
+    }
 }
 
-bool ServerConfig::isAllowed(std::string location, std::string method)
-{
-    std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
-    if (it != _routes.end()) {
-        std::vector<std::string>::iterator it2 = std::find(it->second.methods.begin(), it->second.methods.end(), method);
-        if (it2 != it->second.methods.end())
-            return true;
-        else
-            return false;
-    }
-    else
-        throw std::runtime_error("404 Not Found");
-}
+// bool ServerConfig::isAllowed(std::string location, std::string method)
+// {
+//     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
+//     if (it != _routes.end()) {
+//         std::vector<std::string>::iterator it2 = std::find(it->second.methods.begin(), it->second.methods.end(), method);
+//         if (it2 != it->second.methods.end())
+//             return true;
+//         else
+//             return false;
+//     }
+//     else
+//         throw std::runtime_error("404 Not Found");
+// }
 
 std::string ServerConfig::getLocationRoot(std::string location)
 {
     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
     if (it != _routes.end())
         return it->second.root;
-    else
-        throw std::runtime_error("404 Not Found");
+    else {
+        if (location[0] == '/')
+            location = location.substr(1);
+        return location;
+    }
 }
 
 bool ServerConfig::getLocationDirectoryListing(std::string location)
@@ -346,7 +352,7 @@ bool ServerConfig::getLocationDirectoryListing(std::string location)
     if (it != _routes.end())
         return it->second.directoryListing;
     else
-        throw std::runtime_error("404 Not Found");
+        return false;;
 }
 
 std::string ServerConfig::getLocationIndex(std::string location)
@@ -355,7 +361,7 @@ std::string ServerConfig::getLocationIndex(std::string location)
     if (it != _routes.end())
         return it->second.index;
     else
-        throw std::runtime_error("404 Not Found");
+        return "";
 }
 
 std::map<std::string, std::string> ServerConfig::getLocationRedirect(std::string location)
@@ -363,8 +369,10 @@ std::map<std::string, std::string> ServerConfig::getLocationRedirect(std::string
     std::map<std::string, RouteSettings>::iterator it = _routes.find(location);
     if (it != _routes.end())
         return it->second.redirect;
-    else
-        throw std::runtime_error("404 Not Found");
+    else {
+        std::map<std::string, std::string> emptyMap;
+        return emptyMap;
+    }
 }
 
 std::string ServerConfig::getLocationCgi(std::string location)

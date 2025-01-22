@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 22:07:44 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/22 15:26:27 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <fstream>
 # include <vector>
 # include <map>
+# include <ctime>
 
 namespace Utils
 {

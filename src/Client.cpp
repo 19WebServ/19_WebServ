@@ -126,6 +126,7 @@ std::string Client::respondToGet()
     else
         locationIndex = _request.getPath();
     std::string path = locationRoot + locationIndex;
+    std::cout << "\n\n" << path << std::endl << std::endl;
     if (!_server.getLocationRedirect(locationBlock).empty())
         response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
@@ -145,14 +146,19 @@ std::string Client::respondToGet()
                 throw std::runtime_error("403 Forbidden");
         }
         else {
+            std::cout << "okkkkkkkk\n\n";
             response = makeRedirection("301", _server.getLocationIndex(locationBlock));
             return response;
         }
+        std::string type = Utils::findType(locationIndex);
+        size_t fileNamePos = locationIndex.find_last_of('/', 0);
         response = 
             "HTTP/1.1 200 OK\r\n"
-            // "Content-Type: " + Utils::findType(locationIndex); + "\r\n"
-            "Content-Type: " + Utils::findType(locationIndex) + "\r\n"
-            "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
+            "Content-Type: " + type + "\r\n"
+            "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n";
+        if (type.find("image") != std::string::npos || type.find("pdf") != std::string::npos)
+            response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
+        response +=
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"
             "\r\n" +

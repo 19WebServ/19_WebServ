@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 22:49:40 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/22 17:42:24 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,6 +169,7 @@ std::string Utils::findType(std::string file)
     types[".gif"] = "image/gif";
     types[".css"] = "text/css";
     types[".js"]=  "applicatin/javascript";
+    types[".pdf"] = "application/pdf";
 
     size_t dotPos = file.find_last_of('.');
     if (dotPos == std::string::npos)
