@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 15:04:14 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 22:20:00 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 09:57:32 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,10 @@
 
 Request::Request() {
     _contentLen = 0;
-    _content = "";
-    _boundary = "";
 }
 
 Request::Request(std::string location, std::string path, std::string method): _method(method), _location(location), _path(path) {
     _contentLen = 0;
-    _content = "";
-    _boundary = "";
 }
 
 Request::~Request() {}

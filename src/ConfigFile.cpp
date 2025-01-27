@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:35:06 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 12:26:31 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 ConfigFile::ConfigFile(const std::string &configFile)
 {
-    std::string configStr = "";
+    std::string configStr;
     std::vector<std::string> blockStrs;
     
     fileInStr(configFile, configStr);
@@ -76,7 +76,7 @@ void ConfigFile::splitStr(std::string &configStr, std::vector<std::string> &bloc
 {
     std::istringstream line;
     std::string word;
-    std::string tempStr = "";
+    std::string tempStr;
     int brackets(0);
 
     line.str(configStr);
@@ -172,13 +172,13 @@ void ConfigFile::parseServer(std::string serverStr)
     _servers.push_back(server);
 }
 
-std::ostream& operator<<(std::ostream& os, const ConfigFile& obj) {
-    for (size_t i(0); i < obj._servers.size(); i++) {
-        os << "----- SERVER " << i << "-----\n" << std::endl;
-        os << obj._servers[i] << "\n" << std::endl;
-    }
-    return os;
-}
+// std::ostream& operator<<(std::ostream& os, const ConfigFile& obj) {
+//     for (size_t i(0); i < obj._servers.size(); i++) {
+//         os << "----- SERVER " << i << "-----\n" << std::endl;
+//         os << obj._servers[i] << "\n" << std::endl;
+//     }
+//     return os;
+// }
 
 
 /* ---GETTERS--- */

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:23:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/17 23:44:53 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 09:59:40 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,10 +68,7 @@ RouteSettings extractLocationSettings(std::string configStr)
 void initRouteBlock(RouteSettings &routeBlock)
 {
     routeBlock.methods.push_back("GET");
-    routeBlock.root = "";
     routeBlock.directoryListing = false;
-    routeBlock.index = "";
-    routeBlock.cgi = "";
 }
 
 void extractRouteRoot(RouteSettings &route, std::string setting)

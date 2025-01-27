@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/22 17:42:24 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 13:04:30 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,3 +182,8 @@ std::string Utils::findType(std::string file)
 
     return "text/html";
 }
+
+// bool isDeletable(std::string path, std::string file)
+// {
+    
+// }

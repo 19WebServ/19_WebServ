@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/22 15:26:27 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 11:08:20 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ namespace Utils
     void saveFile(const std::string& filename, const std::string& fileData);
     size_t getTime();
     std::string findType(std::string);
+    bool isDeletable(std::string, std::string);
 }
 
 #endif

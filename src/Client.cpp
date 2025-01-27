@@ -84,7 +84,7 @@ std::string    Client::sendResponse()
 {
     size_t index(0);
     std::string methods[3] = {"GET", "POST", "DELETE"};
-    std::string response = "";
+    std::string response;
 
     index = 0;
     for (; index < sizeof(methods) / sizeof(methods[0]); index++) {
@@ -103,7 +103,7 @@ std::string    Client::sendResponse()
         break;
     case 2:
     //     /* DELETE */
-    //     response = this->respondToDelete();
+        response = this->respondToDelete();
         break;
         
     default:
@@ -146,7 +146,6 @@ std::string Client::respondToGet()
                 throw std::runtime_error("403 Forbidden");
         }
         else {
-            std::cout << "okkkkkkkk\n\n";
             response = makeRedirection("301", _server.getLocationIndex(locationBlock));
             return response;
         }
@@ -182,10 +181,19 @@ std::string Client::respondToPost()
     return response;
 }
 
-// std::string Client::respondToDelete()
-// {
-    
-// }
+std::string Client::respondToDelete()
+{
+    std::string response;
+    std::string path = _request.getLocation() + _request.getPath();
+    size_t pos = path.find_last_of('/', 0);
+    std::string toDelete = path.substr(pos);
+    path.erase(pos);
+    std::cout << "path: " << path << std::endl << "toDelete: " << toDelete << std::endl;
+    // if (Utils::isDeletable(path, toDelete)) {
+        response = "ok";
+    // }
+    return response;
+}
 
 // Scinde le body grace au delimteur et envoie les infos necessaires a la fonction saveFile
 void Client::postContent()

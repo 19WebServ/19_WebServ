@@ -17,8 +17,6 @@ ServerConfig::ServerConfig()
     _port = 0;
     _host = "loaclhost";
     _clientBodyLimit = 1000;
-    _root = "";
-    _index = "";
 }
 
 ServerConfig::ServerConfig(const ServerConfig &copy)
@@ -218,23 +216,15 @@ void ServerConfig::checkMissigValues()
         throw std::runtime_error("missing a server name.");
     if (_root.empty())
         throw std::runtime_error("missing a root directory.");
-    // if (_index.empty())
-    //     throw std::runtime_error("missing index page.");
     for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
         if (it->second.root.empty())
             it->second.root = _root;
-        // if (it->second.index.empty())
-        //     throw std::runtime_error("missing index page in " + it->first + " location block.");
     }
 }
 
 // Check if all the paths are valid and if we have the right permissions
 void ServerConfig::checkIfValidPath()
 {
-    // if (!Utils::isFile(_root + _index))
-    //     throw std::runtime_error("index " + _root + _index + " is not a file.");
-    // else if (!Utils::hasReadPermission((_root + _index).c_str()))
-    //     throw std::runtime_error("index " + _root + _index + " file doesn't have read permission.");
     for (std::map<int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); it++) {
         if (!Utils::isFile(_root + it->second))
             throw std::runtime_error("error page " + it->second + "is not a file.");
@@ -242,10 +232,6 @@ void ServerConfig::checkIfValidPath()
             throw std::runtime_error("error page " + it->second + "doesn't have read permission.");
     }
     for (std::map<std::string, RouteSettings>::const_iterator it = _routes.begin(); it != _routes.end(); it++) {
-        // if (!Utils::isFile(it->second.root + it->second.index))
-        //     throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " is not a file.");
-        // else if (!Utils::hasReadPermission((it->second.root + it->second.index).c_str()))
-        //     throw std::runtime_error("index " + it->second.root + it->second.index + " in loaction block " + it->first + " doesn't have read permission.");
         if (!it->second.cgi.empty() && !Utils::isFile(it->second.root + it->second.cgi))
             throw std::runtime_error("CGI " + it->second.root + it->second.cgi + " in loaction block " + it->first + " is not a file.");
         else if (!it->second.cgi.empty() && !Utils::hasReadPermission((it->second.root + it->second.cgi).c_str()))
@@ -255,33 +241,33 @@ void ServerConfig::checkIfValidPath()
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
-    os << "Listening to port : ";
-    os << obj._port << std::endl;
-    os << "Server name(s) : ";
-    for (size_t i(0); i < obj._serverName.size(); i++)
-        os << obj._serverName[i] << " ";
-    os << "\nError pages : " << std::endl;
-    for (std::map<int, std::string>::const_iterator it = obj._errorPages.begin(); it != obj._errorPages.end(); it++) {
-        os << it->first << "     " << it->second << std::endl;
-    }
-    os << "Max body size : " << obj._clientBodyLimit << std::endl;
-    os << "Root : " << obj._root << std::endl;
-    os << "Index : " << obj._index << std::endl;
-    for (std::map<std::string, RouteSettings>::const_iterator it = obj._routes.begin(); it != obj._routes.end(); it++) {
-        os << "Route : " << it->first << std::endl << "{" << std::endl;
-        os << "Methods : ";
-        for (size_t i(0); i < it->second.methods.size(); i++)
-            os << it->second.methods[i] << " ";
-        os << std::endl;
-        os << "Root : " << it->second.root << std::endl;
-        os << "Index : " << it->second.index << std::endl;
-        os << "Dir listing : " << it->second.directoryListing << std::endl;
-        os << "Redir : " << it->second.redirect.begin()->second << std::endl;
-        os << "CGI : " << it->second.cgi << std::endl << "}" << std::endl; 
-    }
-    return os;
-}
+// std::ostream& operator<<(std::ostream& os, const ServerConfig& obj) {
+//     os << "Listening to port : ";
+//     os << obj._port << std::endl;
+//     os << "Server name(s) : ";
+//     for (size_t i(0); i < obj._serverName.size(); i++)
+//         os << obj._serverName[i] << " ";
+//     os << "\nError pages : " << std::endl;
+//     for (std::map<int, std::string>::const_iterator it = obj._errorPages.begin(); it != obj._errorPages.end(); it++) {
+//         os << it->first << "     " << it->second << std::endl;
+//     }
+//     os << "Max body size : " << obj._clientBodyLimit << std::endl;
+//     os << "Root : " << obj._root << std::endl;
+//     os << "Index : " << obj._index << std::endl;
+//     for (std::map<std::string, RouteSettings>::const_iterator it = obj._routes.begin(); it != obj._routes.end(); it++) {
+//         os << "Route : " << it->first << std::endl << "{" << std::endl;
+//         os << "Methods : ";
+//         for (size_t i(0); i < it->second.methods.size(); i++)
+//             os << it->second.methods[i] << " ";
+//         os << std::endl;
+//         os << "Root : " << it->second.root << std::endl;
+//         os << "Index : " << it->second.index << std::endl;
+//         os << "Dir listing : " << it->second.directoryListing << std::endl;
+//         os << "Redir : " << it->second.redirect.begin()->second << std::endl;
+//         os << "CGI : " << it->second.cgi << std::endl << "}" << std::endl; 
+//     }
+//     return os;
+// }
 
 
 /* ---GETTERS--- */

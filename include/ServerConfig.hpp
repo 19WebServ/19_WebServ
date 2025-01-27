@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/22 17:54:42 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 12:26:14 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ public:
     std::map<std::string, std::string> getLocationRedirect(std::string);
     std::string getLocationCgi(std::string);
 
-    friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
+    // friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 
     /* --- PARSING--- */
     void extractPort(std::string);
