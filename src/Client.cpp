@@ -185,13 +185,21 @@ std::string Client::respondToDelete()
 {
     std::string response;
     std::string path = _request.getLocation() + _request.getPath();
-    size_t pos = path.find_last_of('/', 0);
+    size_t pos = path.find_last_of('/');
     std::string toDelete = path.substr(pos);
     path.erase(pos);
+    if (!path.empty() && path[0] == '/')
     std::cout << "path: " << path << std::endl << "toDelete: " << toDelete << std::endl;
-    // if (Utils::isDeletable(path, toDelete)) {
-        response = "ok";
-    // }
+    if (Utils::isDeletable(path, toDelete)) {
+        if (std::remove((path + toDelete).c_str()))
+            throw ("Error while deleting the file.");
+        response =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: " + Utils::findType(path + toDelete) + "\r\n"
+            "Content-Length: 33\r\n"
+            "\r\n"
+            "Ressource deleted successfully\r\n";
+    }
     return response;
 }
 

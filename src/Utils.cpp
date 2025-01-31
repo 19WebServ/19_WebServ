@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/27 13:04:30 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/29 13:53:52 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,13 @@ std::string Utils::findType(std::string file)
     return "text/html";
 }
 
-// bool isDeletable(std::string path, std::string file)
-// {
-    
-// }
+bool Utils::isDeletable(std::string path, std::string file)
+{
+    if (Utils::isDir(path + file))
+        throw std::runtime_error("400 Bad request");
+    else if (!Utils::isFile(path + file))
+        throw std::runtime_error("404 Not found");
+    else if (!Utils::hasWritePermission(path.c_str()) || Utils::hasExecutePermission(path.c_str()))
+        throw std::runtime_error("403 Forbiden");
+    return true;
+}
