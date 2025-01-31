@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/29 13:53:52 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/31 20:04:07 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,9 @@ bool Utils::areOnlyDigits(std::string nb)
 bool Utils::isDir(std::string path)
 {
     struct stat sb;
- 
-    if (stat(path.c_str(), &sb) == 0)
-        return true;
-    else
+    if (stat(path.c_str(), &sb) != 0)
         return false;
+    return (sb.st_mode & S_IFDIR) != 0;
 }
 
 bool Utils::isFile(std::string path)
@@ -185,11 +183,16 @@ std::string Utils::findType(std::string file)
 
 bool Utils::isDeletable(std::string path, std::string file)
 {
-    if (Utils::isDir(path + file))
+    std::string completePath;
+    if (path.empty())
+        completePath = file;
+    else
+        completePath = path + "/" + file;
+    if (Utils::isDir(completePath))
         throw std::runtime_error("400 Bad request");
-    else if (!Utils::isFile(path + file))
+    else if (!Utils::isFile(completePath))
         throw std::runtime_error("404 Not found");
-    else if (!Utils::hasWritePermission(path.c_str()) || Utils::hasExecutePermission(path.c_str()))
+    else if (!Utils::hasWritePermission(path.c_str()) || !Utils::hasExecutePermission(path.c_str()))
         throw std::runtime_error("403 Forbiden");
     return true;
 }

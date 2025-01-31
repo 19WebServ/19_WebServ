@@ -129,6 +129,8 @@ void ServerConfig::extractRoot(std::string setting)
         throw std::runtime_error("Invalid root.");
     else if (!Utils::hasRootDirectoryAccess(word.c_str()))
         throw std::runtime_error("Root directory does not have necessary access.");
+    if (word[0] == '/')
+        word = word.erase(0, 1);
     if (word[word.size() - 1] == '/')
         _root = word.substr(0, word.size() - 1);
     else
@@ -199,12 +201,15 @@ void ServerConfig::extractLocation(std::string setting)
     if (!Utils::isPath(word))
         throw std::runtime_error("invalid route.");
     route = word;
-    if (route[0] != '/')
-        route = "/" + route;
+    size_t i = 12;
+    if (route[0] == '/') {
+        route = route.erase(0, 1);
+        i++;
+    }
     getline(ss, word, ' ');
     if (word != "{")
         throw std::runtime_error("missing open bracket after route declaration.");
-    locationSettingsStr = setting.substr(route.size() + 12);
+    locationSettingsStr = setting.substr(route.size() + i);
     _routes[route] = extractLocationSettings(locationSettingsStr);
 }
 

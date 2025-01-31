@@ -32,10 +32,13 @@ void    Client::parseRequest(std::string request)
     getline(ss, location, '/');                          // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
     if (!ss.eof() && location.empty())
         getline(ss, location, '/');
-    location = "/" + location;
-    path = path.substr(location.size());
+    // location = "/" + location;
+    path = path.erase(0, 1);
+    if (!path.empty())
+        path = path.substr(location.size());
     // if (method == "POST" && path.empty())
     //     return ;
+    // std::cout << "PATH : " << path << "     LOC : " << location << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -125,8 +128,7 @@ std::string Client::respondToGet()
         locationIndex = _server.getLocationIndex(locationBlock);
     else
         locationIndex = _request.getPath();
-    std::string path = locationRoot + locationIndex;
-    std::cout << "\n\n" << path << std::endl << std::endl;
+    std::string path = locationRoot + "/" + locationIndex;
     if (!_server.getLocationRedirect(locationBlock).empty())
         response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
@@ -184,18 +186,22 @@ std::string Client::respondToPost()
 std::string Client::respondToDelete()
 {
     std::string response;
-    std::string path = _request.getLocation() + _request.getPath();
-    size_t pos = path.find_last_of('/');
-    std::string toDelete = path.substr(pos);
-    path.erase(pos);
-    if (!path.empty() && path[0] == '/')
-    std::cout << "path: " << path << std::endl << "toDelete: " << toDelete << std::endl;
-    if (Utils::isDeletable(path, toDelete)) {
-        if (std::remove((path + toDelete).c_str()))
+    std::string toDelete;
+    std::string baseDir;
+    std::string completePath = _server.getLocationRoot(_request.getLocation()) + _request.getPath();
+    size_t pos = completePath.find_last_of('/');
+    if (pos == std::string::npos)
+        toDelete = completePath;
+    else {
+        toDelete = completePath.substr(pos + 1);
+        baseDir = completePath.substr(0, pos);
+    }
+    if (Utils::isDeletable(baseDir, toDelete)) {
+        if (std::remove((completePath).c_str()))
             throw ("Error while deleting the file.");
         response =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Type: " + Utils::findType(path + toDelete) + "\r\n"
+            "Content-Type: " + Utils::findType(toDelete) + "\r\n"
             "Content-Length: 33\r\n"
             "\r\n"
             "Ressource deleted successfully\r\n";

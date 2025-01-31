@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/09 19:23:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/27 09:59:40 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/31 18:03:27 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,8 @@ void extractRouteRoot(RouteSettings &route, std::string setting)
         throw std::runtime_error("Invalid root.");
     else if (!Utils::hasRootDirectoryAccess(word.c_str()))
         throw std::runtime_error("Root directory does not have necessary access.");
+    if (word[0] == '/')
+        word = word.erase(0, 1);
     if (word[word.size() - 1] == '/')
         route.root = word.substr(0, word.size() - 1);
     else
@@ -106,9 +108,9 @@ void extractRouteIndex(RouteSettings &route, std::string setting)
     if (!ss.eof())
         throw std::runtime_error("More than 1 error page.");
     if (Utils::isPath(word))
-        route.index = word;
+        route.index = word.erase(0, 1);
     else
-        route.index = "/" + word;
+        route.index = word;
 }
 
 void extractRouteAutoindex(RouteSettings &route, std::string setting)
