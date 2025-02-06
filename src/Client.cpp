@@ -176,10 +176,10 @@ std::string Client::respondToPost()
     response =
         "HTTP/1.1 201 Created\r\n"
         "Content-Type: text/plain\r\n"
-        "Content-Length: 19\r\n"
+        "Content-Length: 20r\n"
         "Connection: close\r\n"
         "\r\n"
-        "File upload success";
+        "File upload success\n";
     return response;
 }
 
@@ -189,6 +189,8 @@ std::string Client::respondToDelete()
     std::string toDelete;
     std::string baseDir;
     std::string completePath = _server.getLocationRoot(_request.getLocation()) + _request.getPath();
+    if (completePath[completePath.size() - 1] == '/')
+        completePath = completePath.substr(0, completePath.size() - 1);
     size_t pos = completePath.find_last_of('/');
     if (pos == std::string::npos)
         toDelete = completePath;
@@ -198,13 +200,13 @@ std::string Client::respondToDelete()
     }
     if (Utils::isDeletable(baseDir, toDelete)) {
         if (std::remove((completePath).c_str()))
-            throw ("Error while deleting the file.");
+            throw std::runtime_error("Error while deleting the file.");
         response =
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + Utils::findType(toDelete) + "\r\n"
-            "Content-Length: 33\r\n"
+            "Content-Length: 31\r\n"
             "\r\n"
-            "Ressource deleted successfully\r\n";
+            "Ressource deleted successfully\n";
     }
     return response;
 }
