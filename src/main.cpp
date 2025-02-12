@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
         socketServer.launchServer();
 
     } catch (const std::exception &e) {
-        std::cerr << "Erreur : " << e.what() << std::endl;
+        std::cerr << "Error : " << e.what() << std::endl;
         return 1;
     }
 

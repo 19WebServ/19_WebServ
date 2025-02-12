@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/27 12:26:31 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/08 18:51:21 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,8 @@ ConfigFile::ConfigFile(const std::string &configFile)
         splitStr(configStr, blockStrs);
     for (size_t i(0); i < blockStrs.size(); i++)
         parseServer(blockStrs[i]);
-    
+    if (Utils::samePorts(_servers))
+        throw std::runtime_error("Same port for multiple servers.");
 }
 
 ConfigFile::~ConfigFile()
