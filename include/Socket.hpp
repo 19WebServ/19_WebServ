@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 21:45:59 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 22:26:40 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/17 15:26:56 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@
 #include <iostream>
 #include <vector>
 #include <poll.h>
-#include <cerrno>
 #include "ConfigFile.hpp"
 #include "Client.hpp"
 

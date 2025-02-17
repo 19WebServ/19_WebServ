@@ -223,7 +223,7 @@ void    Socket::handleClient(int &clientFd, Client client)
     {
         if (bytes_receiv == 0) 
             std::cout << "Client disconnected" << std::endl;
-        else if (errno != EWOULDBLOCK && errno != EAGAIN)
+        else if (bytes_receiv < 0)
             std::cerr << "Failed to receive data from client" << std::endl;
         close(clientFd);
         for (size_t k = 0; k < this->_clients.size(); k++)
@@ -264,9 +264,9 @@ int Socket::processingRequest(std::string requestStr, int bytes_receive, int cli
         int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
         if (bytes_sent > 0)
             total_sent += bytes_sent;
-        else if (errno != EWOULDBLOCK && errno != EAGAIN)
-        {
-            std::cerr << "Failed to send response to client." << std::endl;
+        else {
+            if (bytes_sent < 0)
+                std::cerr << "Failed to send response to client." << std::endl;
             break;
         }
     }
