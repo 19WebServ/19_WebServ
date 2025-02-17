@@ -216,7 +216,6 @@ void    Socket::handleClient(int &clientFd, Client client)
     int bytes_receiv = this->receiveData(clientFd, request, maxSize);
     if (bytes_receiv > 0)
     {
-
         if (this->processingRequest(request, bytes_receiv, clientFd, client))
             return ;
     }
@@ -271,7 +270,6 @@ int Socket::processingRequest(std::string requestStr, int bytes_receive, int cli
             break;
         }
     }
-    std::cout << "AFTER RESPONSE" << std::endl;
     return 0;
 }
 

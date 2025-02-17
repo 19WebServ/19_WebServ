@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:42:04 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/08 19:10:01 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,9 @@ bool Utils::areOnlyDigits(std::string nb)
 bool Utils::isDir(std::string path)
 {
     struct stat sb;
- 
-    if (stat(path.c_str(), &sb) == 0)
-        return true;
-    else
+    if (stat(path.c_str(), &sb) != 0)
         return false;
+    return (sb.st_mode & S_IFDIR) != 0;
 }
 
 bool Utils::isFile(std::string path)
@@ -137,6 +135,20 @@ std::string Utils::intToStr(int len)
 //     return buffer;
 // }
 
+bool Utils::samePorts(std::vector<ServerConfig> servers)
+{
+    std::vector<int> allPorts;
+    int port;
+    for (size_t i(0); i < servers.size(); i++) {
+        port = servers[i].getPort();
+        if (std::find(allPorts.begin(), allPorts.end(), port) == allPorts.end())
+            allPorts.push_back(port);
+        else
+            return true;
+    }
+    return false;
+}
+
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
     std::ofstream outFile(("./document/" + filename).c_str(), std::ios::binary);
     if (!outFile) {
@@ -156,4 +168,45 @@ size_t Utils::getTime()
         res = static_cast<size_t>(currentTime);
     }
     return res;
+}
+
+std::string Utils::findType(std::string file)
+{
+    std::map<std::string, std::string> types;
+    types[".html"] = "text/html";
+    types[".htm"] = "text/html";
+    types[".jpg"] = "image/jpeg";
+    types[".jpeg"] = "image/jpeg";
+    types[".png"] = "image/png";
+    types[".gif"] = "image/gif";
+    types[".css"] = "text/css";
+    types[".js"]=  "applicatin/javascript";
+    types[".pdf"] = "application/pdf";
+
+    size_t dotPos = file.find_last_of('.');
+    if (dotPos == std::string::npos)
+        return "text/html";
+
+    std::string extension = file.substr(dotPos);
+    std::map<std::string, std::string>::iterator it = types.find(extension);
+    if (it != types.end())
+        return it->second;
+
+    return "text/html";
+}
+
+bool Utils::isDeletable(std::string path, std::string file)
+{
+    std::string completePath;
+    if (path.empty())
+        completePath = file;
+    else
+        completePath = path + "/" + file;
+    if (Utils::isDir(completePath))
+        throw std::runtime_error("400 Bad request");
+    else if (!Utils::isFile(completePath))
+        throw std::runtime_error("404 Not found");
+    else if (!Utils::hasWritePermission(path.c_str()) || !Utils::hasExecutePermission(path.c_str()))
+        throw std::runtime_error("403 Forbiden");
+    return true;
 }

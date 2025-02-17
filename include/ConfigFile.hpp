@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:13:47 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 12:26:36 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ public:
 
     std::vector<ServerConfig> getServer();
     
-    friend std::ostream& operator<<(std::ostream& os, const ConfigFile& obj);
+    // friend std::ostream& operator<<(std::ostream& os, const ConfigFile& obj);
     
 private:
     /* ---METHODS--- */

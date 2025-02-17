@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 14:46:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:15:35 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/21 22:20:10 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,9 @@ public:
     std::string getContent();
     std::string getBoundary();
     size_t      getContentLen();
-    std::string getContentType();
 
     /* --- SETTERS--- */
     void setContent(std::string);
-    void setContentType(std::string);
     void setBoundary(std::string);
     
 private:
@@ -44,7 +42,6 @@ private:
     std::string _path;
     std::string _content;
     size_t      _contentLen;
-    std::string _contentType;
     std::string _boundary;
 };
 

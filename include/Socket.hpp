@@ -1,4 +1,17 @@
-#pragma once
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Socket.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/21 21:45:59 by vdecleir          #+#    #+#             */
+/*   Updated: 2025/01/21 22:26:40 by vdecleir         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef SOCKET_HPP
+# define SOCKET_HPP
 
 #include <iostream>
 #include <cstring>
@@ -46,3 +59,5 @@ class Socket
         std::vector<Client> _clients;
         static Socket*     _instance;
 };
+
+#endif

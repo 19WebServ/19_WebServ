@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:41:59 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/08 19:09:31 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,11 @@
 # include <unistd.h>
 # include <fstream>
 # include <vector>
+# include <map>
+# include <ctime>
+# include "./ServerConfig.hpp"
+
+class ServerConfig;
 
 namespace Utils
 {
@@ -27,15 +32,18 @@ namespace Utils
     bool isDir(std::string);
     bool isFile(std::string);
     bool isPath(std::string);
-    bool hasReadPermission(const char* filePath);
-    bool hasExecutePermission(const char* filePath);
-    bool hasWritePermission(const char* filePath);
-    bool hasRootDirectoryAccess(const char* dirPath);
-    std::string readFile(std::string filename);
+    bool hasReadPermission(const char*);
+    bool hasExecutePermission(const char*);
+    bool hasWritePermission(const char*);
+    bool hasRootDirectoryAccess(const char*);
+    std::string readFile(std::string);
     // std::string generateErrorPage(std::string);
     std::string intToStr(int);
-    void saveFile(const std::string& filename, const std::string& fileData);
+    bool samePorts(std::vector<ServerConfig>);
+    void saveFile(const std::string&, const std::string&);
     size_t getTime();
+    std::string findType(std::string);
+    bool isDeletable(std::string, std::string);
 }
 
 #endif

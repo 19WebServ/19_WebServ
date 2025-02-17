@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 15:04:14 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:36:56 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 09:57:32 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,10 @@
 
 Request::Request() {
     _contentLen = 0;
-    _content = "";
-    _contentType = "";
-    _boundary = "";
 }
 
 Request::Request(std::string location, std::string path, std::string method): _method(method), _location(location), _path(path) {
     _contentLen = 0;
-    _content = "";
-    _contentType = "";
-    _boundary = "";
 }
 
 Request::~Request() {}
@@ -43,8 +37,6 @@ size_t Request::getContentLen() {return this->_contentLen;}
 
 std::string Request::getBoundary() {return this->_boundary;}
 
-std::string Request::getContentType() {return this->_contentType;}
-
 
 /* --- SETTERS--- */
 
@@ -53,8 +45,6 @@ void Request::setContent(std::string body)
     this->_content = body;
     this->_contentLen = body.size();
 }
-
-void Request::setContentType(std::string type) {this->_contentType = type;}
 
 void Request::setBoundary(std::string boundary){ this->_boundary = boundary;}
 

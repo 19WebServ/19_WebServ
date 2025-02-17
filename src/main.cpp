@@ -49,24 +49,27 @@ int main(int argc, char **argv) {
         std::vector<ServerConfig> servers = configFile.getServer();
 
         // Récupérer tous les ports
-        std::vector<int> ports;
+        std::vector<int> allPorts;
         for (size_t i = 0; i < servers.size(); i++) {
-            int serverPorts = servers[i].getPort(); // Supposons que getPorts() renvoie un std::vector<int>
-                ports.push_back(serverPorts); // Ajouter chaque port individuellement
+            int serverPort = servers[i].getPort();
+            if (std::find(allPorts.begin(), allPorts.end(), serverPort) == allPorts.end())
+                allPorts.push_back(serverPort);
+            else
+                throw std::runtime_error("Same port for multiple servers.");
         }
 
         // Afficher les ports récupérés pour vérification
         std::cout << "Ports configurés : ";
-        for (size_t i = 0; i < ports.size(); i++) {
-            std::cout << ports[i] << (i < ports.size() - 1 ? ", " : "\n");
+        for (size_t i = 0; i < allPorts.size(); i++) {
+            std::cout << allPorts[i] << (i < allPorts.size() - 1 ? ", " : "\n");
         }
 
         // Lancer les serveurs avec la classe Socket
-        Socket socketServer(ports, servers);
+        Socket socketServer(allPorts, servers);
         socketServer.launchServer();
 
     } catch (const std::exception &e) {
-        std::cerr << "Erreur : " << e.what() << std::endl;
+        std::cerr << "Error : " << e.what() << std::endl;
         return 1;
     }
 

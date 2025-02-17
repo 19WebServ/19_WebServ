@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 17:32:17 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 18:19:25 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/22 15:26:24 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 # include <cstdlib>
 # include <iostream>
-# include <ctime>
 # include <sstream>
 # include <string>
 # include <dirent.h>

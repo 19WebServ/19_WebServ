@@ -24,7 +24,7 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << request << std::endl;
+    std::cout << "\n" << request << std::endl;
     getline(ss, method, ' ');
     getline(ss, path, ' ');
     ss.clear();
@@ -32,8 +32,13 @@ void    Client::parseRequest(std::string request)
     getline(ss, location, '/');                          // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
     if (!ss.eof() && location.empty())
         getline(ss, location, '/');
-    location = "/" + location;
-    path = path.substr(location.size());
+    // location = "/" + location;
+    path = path.erase(0, 1);
+    if (!path.empty())
+        path = path.substr(location.size());
+    // if (method == "POST" && path.empty())
+    //     return ;
+    // std::cout << "PATH : " << path << "     LOC : " << location << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -82,7 +87,7 @@ std::string    Client::sendResponse()
 {
     size_t index(0);
     std::string methods[3] = {"GET", "POST", "DELETE"};
-    std::string response = "";
+    std::string response;
 
     index = 0;
     for (; index < sizeof(methods) / sizeof(methods[0]); index++) {
@@ -101,7 +106,7 @@ std::string    Client::sendResponse()
         break;
     case 2:
     //     /* DELETE */
-    //     response = this->respondToDelete();
+        response = this->respondToDelete();
         break;
         
     default:
@@ -115,20 +120,21 @@ std::string Client::respondToGet()
 {
     std::string htmlContent;
     std::string response;
-    std::string locationRoot = _server.getLocationRoot(_request.getLocation());
+    std::string locationBlock = _request.getLocation();
+    std::string locationRoot = _server.getLocationRoot(locationBlock);
     std::string locationIndex;
-    std::cout << _request.getPath() << std::endl << std::endl;
+
     if (_request.getPath().empty())
-        locationIndex = _server.getLocationIndex(_request.getLocation());
+        locationIndex = _server.getLocationIndex(locationBlock);
     else
         locationIndex = _request.getPath();
-    std::string path = locationRoot + locationIndex;
-    if (!_server.getLocationRedirect(_request.getLocation()).empty())
-        response = makeRedirection(_server.getLocationRedirect(_request.getLocation()).begin()->first, _server.getLocationRedirect(_request.getLocation()).begin()->second);
+    std::string path = locationRoot + "/" + locationIndex;
+    if (!_server.getLocationRedirect(locationBlock).empty())
+        response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
         if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
             return executeCGI(path.substr(0, path.size() - 1));
-        if (Utils::isFile(path)) {
+        else if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
@@ -136,19 +142,24 @@ std::string Client::respondToGet()
                 throw std::runtime_error("Failed to read html file.");
         }
         else if (locationIndex.empty()) {
-            if (_server.getLocationDirectoryListing(_request.getLocation()))
-                htmlContent = listDir(_server.getLocationRoot(_request.getLocation()));
+            if (_server.getLocationDirectoryListing(locationBlock))
+                htmlContent = listDir(_server.getLocationRoot(locationBlock));
             else
                 throw std::runtime_error("403 Forbidden");
         }
         else {
-            response = makeRedirection("301", _server.getLocationIndex(_request.getLocation()));
+            response = makeRedirection("301", _server.getLocationIndex(locationBlock));
             return response;
         }
+        std::string type = Utils::findType(locationIndex);
+        size_t fileNamePos = locationIndex.find_last_of('/', 0);
         response = 
             "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html\r\n"
-            "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n"
+            "Content-Type: " + type + "\r\n"
+            "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n";
+        if (type.find("image") != std::string::npos || type.find("pdf") != std::string::npos)
+            response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
+        response +=
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"
             "\r\n" +
@@ -165,17 +176,40 @@ std::string Client::respondToPost()
     response =
         "HTTP/1.1 201 Created\r\n"
         "Content-Type: text/plain\r\n"
-        "Content-Length: 19\r\n"
+        "Content-Length: 20r\n"
         "Connection: close\r\n"
         "\r\n"
-        "File upload success";
+        "File upload success\n";
     return response;
 }
 
-// std::string Client::respondToDelete()
-// {
-    
-// }
+std::string Client::respondToDelete()
+{
+    std::string response;
+    std::string toDelete;
+    std::string baseDir;
+    std::string completePath = _server.getLocationRoot(_request.getLocation()) + _request.getPath();
+    if (completePath[completePath.size() - 1] == '/')
+        completePath = completePath.substr(0, completePath.size() - 1);
+    size_t pos = completePath.find_last_of('/');
+    if (pos == std::string::npos)
+        toDelete = completePath;
+    else {
+        toDelete = completePath.substr(pos + 1);
+        baseDir = completePath.substr(0, pos);
+    }
+    if (Utils::isDeletable(baseDir, toDelete)) {
+        if (std::remove((completePath).c_str()))
+            throw std::runtime_error("Error while deleting the file.");
+        response =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: " + Utils::findType(toDelete) + "\r\n"
+            "Content-Length: 31\r\n"
+            "\r\n"
+            "Ressource deleted successfully\n";
+    }
+    return response;
+}
 
 // Scinde le body grace au delimteur et envoie les infos necessaires a la fonction saveFile
 void Client::postContent()

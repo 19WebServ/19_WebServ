@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 17:33:57 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/01/27 12:26:14 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,14 +38,14 @@ public:
     std::string getHost();
     std::string getIndex();
     std::vector<std::string> getLocationAllowedMethods(std::string);
-    bool isAllowed(std::string, std::string);
+    // bool isAllowed(std::string, std::string);
     std::string getLocationRoot(std::string);
     bool getLocationDirectoryListing(std::string);
     std::string getLocationIndex(std::string);
     std::map<std::string, std::string> getLocationRedirect(std::string);
     std::string getLocationCgi(std::string);
 
-    friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
+    // friend std::ostream& operator<<(std::ostream& os, const ServerConfig& obj);
 
     /* --- PARSING--- */
     void extractPort(std::string);
