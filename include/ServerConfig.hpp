@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 12:41:07 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/27 12:26:14 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/18 13:39:42 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ public:
     ~ServerConfig();
 
     /* ---GETTERS--- */
-    int                 getPort();
+    std::vector<int>    getPort();
     size_t              getBodySize();
     std::vector<std::string> getServerNames();
     std::string getErrorPage(int);
@@ -61,7 +61,7 @@ public:
     
 private:
     /* ---ATTRIBUTES--- */
-    int _port;
+    std::vector<int> _port;
     std::string _host;
     std::vector<std::string> _serverName;
     std::map<int, std::string> _errorPages;

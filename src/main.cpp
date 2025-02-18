@@ -51,11 +51,13 @@ int main(int argc, char **argv) {
         // Récupérer tous les ports
         std::vector<int> allPorts;
         for (size_t i = 0; i < servers.size(); i++) {
-            int serverPort = servers[i].getPort();
-            if (std::find(allPorts.begin(), allPorts.end(), serverPort) == allPorts.end())
-                allPorts.push_back(serverPort);
-            else
-                throw std::runtime_error("Same port for multiple servers.");
+            for (size_t j = 0; j < servers[i].getPort().size(); j++) {
+                int serverPort = servers[i].getPort()[j];
+                if (std::find(allPorts.begin(), allPorts.end(), serverPort) == allPorts.end())
+                    allPorts.push_back(serverPort);
+                else
+                    throw std::runtime_error("Same port for multiple servers.");
+            }
         }
 
         // Afficher les ports récupérés pour vérification

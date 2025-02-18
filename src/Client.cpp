@@ -24,6 +24,8 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
+    if (request.find("HTTP/1.1") == std::string::npos)
+        throw std::runtime_error("400 Bad Request");
     std::cout << "\n" << request << std::endl;
     getline(ss, method, ' ');
     getline(ss, path, ' ');
@@ -160,7 +162,7 @@ std::string Client::respondToGet()
         if (locationIndex.find("?download=true") != std::string::npos)
             response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
         else
-            response += "Content-Disposition: attachment;\r\n";
+            response += "Content-Disposition: inline;\r\n";
         response +=
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"
@@ -291,7 +293,7 @@ std::string Client::displayList(std::vector<std::string> listing)
     if (location[0] != '/')
         location = "/" + location;
     for (size_t i(0); i < listing.size(); i++)
-        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_server.getPort()) + location + "/" + listing[i] + "\">" + listing[i] + "</a></p>\n";
+        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_port) + location + "/" + listing[i] + "\">" + listing[i] + "</a></p>\n";
     htmlContent +="\
     </p>\n\
     </body>\n\

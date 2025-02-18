@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/12 10:53:40 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/18 13:54:06 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ ConfigFile::ConfigFile(const std::string &configFile)
 {
     std::string configStr;
     std::vector<std::string> blockStrs;
-    
     fileInStr(configFile, configStr);
     while (!configStr.empty())
         splitStr(configStr, blockStrs);

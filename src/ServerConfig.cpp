@@ -14,7 +14,6 @@
 
 ServerConfig::ServerConfig()
 {
-    _port = 0;
     _host = "loaclhost";
     _clientBodyLimit = 1000;
 }
@@ -31,9 +30,7 @@ ServerConfig::ServerConfig(const ServerConfig &copy)
     this->_routes = copy._routes;
 }
 
-ServerConfig::~ServerConfig()
-{
-}
+ServerConfig::~ServerConfig() {}
 
 // Check if the number is in  the right range of availables ports and push baack in the vector.
 void ServerConfig::extractPort(std::string setting)
@@ -41,18 +38,19 @@ void ServerConfig::extractPort(std::string setting)
     std::istringstream ss;
     std::string word;
     float nb;
-
     ss.str(setting);
     getline(ss, word, ' ');
     getline(ss, word, ' ');
     if (word.empty())
         throw std::runtime_error("missing port.");
+    if (!ss.eof())
+        throw std::runtime_error("More than 1 port on the line.");
     if (Utils::areOnlyDigits(word)) {
         nb = atof(word.c_str());
         if (nb < 1024 || nb > 65535)
             throw std::runtime_error(word + " : invalid port.");
         else
-            _port = static_cast<int>(nb);
+            _port.push_back(static_cast<int>(nb));
     }
     else
         throw std::runtime_error(word + " : invalid port.");
@@ -215,10 +213,10 @@ void ServerConfig::extractLocation(std::string setting)
 
 void ServerConfig::checkMissigValues()
 {
-    if (_port == 0)
+    if (_port.empty())
         throw std::runtime_error("missing port.");
-    if (_serverName.empty())
-        throw std::runtime_error("missing a server name.");
+    // if (_serverName.empty())
+    //     throw std::runtime_error("missing a server name.");
     if (_root.empty())
         throw std::runtime_error("missing a root directory.");
     for (std::map<std::string, RouteSettings>::iterator it = _routes.begin(); it != _routes.end(); it++) {
@@ -277,7 +275,7 @@ void ServerConfig::checkIfValidPath()
 
 /* ---GETTERS--- */
 
-int ServerConfig::getPort() {return this->_port;}
+std::vector<int> ServerConfig::getPort() {return this->_port;}
 
 size_t ServerConfig::getBodySize() {return this->_clientBodyLimit;}
 
