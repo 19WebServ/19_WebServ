@@ -180,10 +180,10 @@ std::string Client::respondToPost()
     response =
         "HTTP/1.1 201 Created\r\n"
         "Content-Type: text/plain\r\n"
-        "Content-Length: 20r\n"
+        "Refresh: 0\r\n"
+        "Content-Length: 0\r\n"
         "Connection: close\r\n"
-        "\r\n"
-        "File upload success\n";
+        "\r\n";
     return response;
 }
 
@@ -237,7 +237,8 @@ void Client::postContent()
 
                 size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
                 std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 7);
-                Utils::saveFile(filename, fileData);
+                if (!filename.empty())
+                    Utils::saveFile(filename, fileData);
             }
         }
         start = body.find(delimiter, end);
