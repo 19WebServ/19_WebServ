@@ -29,16 +29,12 @@ void    Client::parseRequest(std::string request)
     getline(ss, path, ' ');
     ss.clear();
     ss.str(path);
-    getline(ss, location, '/');                          // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
+    getline(ss, location, '/'); // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
     if (!ss.eof() && location.empty())
         getline(ss, location, '/');
-    // location = "/" + location;
     path = path.erase(0, 1);
     if (!path.empty())
         path = path.substr(location.size());
-    // if (method == "POST" && path.empty())
-    //     return ;
-    // std::cout << "PATH : " << path << "     LOC : " << location << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -141,24 +137,30 @@ std::string Client::respondToGet()
             if (htmlContent.empty())
                 throw std::runtime_error("Failed to read html file.");
         }
-        else if (locationIndex.empty()) {
-            if (_server.getLocationDirectoryListing(locationBlock))
-                htmlContent = listDir(_server.getLocationRoot(locationBlock));
-            else
-                throw std::runtime_error("403 Forbidden");
+        else if (Utils::isDir(path)) {
+            if (locationIndex.empty()) {
+                if (_server.getLocationDirectoryListing(locationBlock))
+                    htmlContent = listDir(_server.getLocationRoot(locationBlock));
+                else
+                    throw std::runtime_error("403 Forbidden");
+            }
+            else {
+                response = makeRedirection("301", _server.getLocationIndex(locationBlock));
+                return response;
+            }
         }
-        else {
-            response = makeRedirection("301", _server.getLocationIndex(locationBlock));
-            return response;
-        }
+        else
+            throw std::runtime_error("404 Not Found");
         std::string type = Utils::findType(locationIndex);
         size_t fileNamePos = locationIndex.find_last_of('/', 0);
         response = 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + type + "\r\n"
             "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n";
-        if (type.find("image") != std::string::npos || type.find("pdf") != std::string::npos)
+        if (locationIndex.find("?download=true") != std::string::npos)
             response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
+        else
+            response += "Content-Disposition: attachment;\r\n";
         response +=
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"

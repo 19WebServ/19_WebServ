@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/08 19:10:01 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/17 16:15:15 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,19 +135,19 @@ std::string Utils::intToStr(int len)
 //     return buffer;
 // }
 
-bool Utils::samePorts(std::vector<ServerConfig> servers)
-{
-    std::vector<int> allPorts;
-    int port;
-    for (size_t i(0); i < servers.size(); i++) {
-        port = servers[i].getPort();
-        if (std::find(allPorts.begin(), allPorts.end(), port) == allPorts.end())
-            allPorts.push_back(port);
-        else
-            return true;
-    }
-    return false;
-}
+// bool Utils::samePorts(std::vector<ServerConfig> servers)
+// {
+//     std::vector<int> allPorts;
+//     int port;
+//     for (size_t i(0); i < servers.size(); i++) {
+//         port = servers[i].getPort();
+//         if (std::find(allPorts.begin(), allPorts.end(), port) == allPorts.end())
+//             allPorts.push_back(port);
+//         else
+//             return true;
+//     }
+//     return false;
+// }
 
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
     std::ofstream outFile(("./document/" + filename).c_str(), std::ios::binary);
