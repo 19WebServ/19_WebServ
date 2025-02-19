@@ -121,6 +121,7 @@ std::string Client::respondToGet()
     std::string locationBlock = _request.getLocation();
     std::string locationRoot = _server.getLocationRoot(locationBlock);
     std::string locationIndex;
+    bool download = false;
 
     if (_request.getPath().empty())
         locationIndex = _server.getLocationIndex(locationBlock);
@@ -132,7 +133,13 @@ std::string Client::respondToGet()
     else {
         if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
             return executeCGI(path.substr(0, path.size() - 1));
-        else if (Utils::isFile(path)) {
+        if (path.find("?download=true") != std::string::npos) {
+            download = true;
+            std::istringstream ss;
+            ss.str(path);
+            getline(ss, path, '?');
+        }
+        if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
@@ -159,10 +166,10 @@ std::string Client::respondToGet()
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + type + "\r\n"
             "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n";
-        if (locationIndex.find("?download=true") != std::string::npos)
-            response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
-        else
+        if (download == false)
             response += "Content-Disposition: inline;\r\n";
+        else
+            response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
         response +=
             "Connection: keep-alive\r\n"
             "Keep-Alive: timeout=10000\r\n"
@@ -294,7 +301,7 @@ std::string Client::displayList(std::vector<std::string> listing)
     if (location[0] != '/')
         location = "/" + location;
     for (size_t i(0); i < listing.size(); i++)
-        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_port) + location + "/" + listing[i] + "\">" + listing[i] + "</a></p>\n";
+        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_port) + location + "/" + listing[i] + "?download=true\">" + listing[i] + "</a></p>\n";
     htmlContent +="\
     </p>\n\
     </body>\n\
