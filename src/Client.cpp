@@ -121,6 +121,7 @@ std::string Client::respondToGet()
     std::string locationBlock = _request.getLocation();
     std::string locationRoot = _server.getLocationRoot(locationBlock);
     std::string locationIndex;
+    bool download = false;
 
     if (_request.getPath().empty())
         locationIndex = _server.getLocationIndex(locationBlock);
@@ -132,7 +133,13 @@ std::string Client::respondToGet()
     else {
         if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
             return executeCGI(path.substr(0, path.size() - 1));
-        else if (Utils::isFile(path)) {
+        if (path.find("?download=true") != std::string::npos) {
+            download = true;
+            std::istringstream ss;
+            ss.str(path);
+            getline(ss, path, '?');
+        }
+        if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
@@ -159,7 +166,7 @@ std::string Client::respondToGet()
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + type + "\r\n"
             "Content-Length: " + Utils::intToStr(htmlContent.size()) + "\r\n";
-        if (locationIndex.find("?download=true") != std::string::npos)
+        if (download == true)
             response += "Content-Disposition: attachment; filename=\"" + path.substr(fileNamePos) + "\"\r\n";
         else
             response += "Content-Disposition: inline;\r\n";
@@ -175,6 +182,13 @@ std::string Client::respondToGet()
 // Reponse dans le cas d'une requete POST
 std::string Client::respondToPost()
 {
+    std::string locationBlock = _request.getLocation();
+    std::string locationRoot = _server.getLocationRoot(locationBlock);
+    std::string locationIndex = _request.getPath();
+    std::string path = locationRoot + "/" + locationIndex;
+    if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl" || path.substr(path.size() - 4) == ".cgi")) {
+        return executeCGI(path);
+    }
     std::string response;
     postContent();
     response =
@@ -302,51 +316,58 @@ std::string Client::displayList(std::vector<std::string> listing)
     return htmlContent;
 }
 
-std::string Client::executeCGI(const std::string& scriptPath) {
+std::string Client::executeCGI(const std::string& scriptPath) 
+{
     int pipefd[2];
     if (pipe(pipefd) == -1)
         throw std::runtime_error("500 Internal Server Error: Pipe failed");
-
     pid_t pid = fork();
     if (pid < 0)
         throw std::runtime_error("500 Internal Server Error: Fork failed");
-
     if (pid == 0) {
         close(pipefd[0]);
 
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
 
-        char* argv[] = {(char*)scriptPath.c_str(), NULL};
-        char* envp[] = {NULL};
+        std::string method = _request.getMethod();
+        std::string queryString = _request.getQuery();
+        std::string body = _request.getContent();
+        std::string contentLength = std::to_string(body.size());
 
+        setenv("REQUEST_METHOD", method.c_str(), 1);
+        setenv("QUERY_STRING", queryString.c_str(), 1);
+        setenv("CONTENT_LENGTH", contentLength.c_str(), 1);
+        setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
+        setenv("SCRIPT_FILENAME", scriptPath.c_str(), 1);
+
+        char *argv[] = {(char *)scriptPath.c_str(), NULL};
+        char *envp[] = {NULL};
         execve(argv[0], argv, envp);
         perror("execve");
         exit(1);
-    } 
+    }
 
     close(pipefd[1]);
-    char buffer[getMaxBodySize()];
+    char buffer[4096];
     std::string output;
-    size_t bytesRead;
+    ssize_t bytesRead;
 
-    while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+    while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) 
+    {
         buffer[bytesRead] = '\0';
         output += buffer;
     }
     close(pipefd[0]);
     int status;
     waitpid(pid, &status, 0);
-
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
         throw std::runtime_error("500 Internal Server Error: CGI script failed");
 
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
-           "Content-Length: " + Utils::intToStr(output.size()) + "\r\n"
-           "Connection: keep-alive\r\n"
-           "Keep-Alive: timeout=10000\r\n"
-           "\r\n" +
+           "Content-Length: " + std::to_string(output.size()) + "\r\n"
+           "Connection: keep-alive\r\n\r\n" +
            output;
 }
 

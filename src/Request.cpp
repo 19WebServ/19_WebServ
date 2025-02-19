@@ -37,6 +37,13 @@ size_t Request::getContentLen() {return this->_contentLen;}
 
 std::string Request::getBoundary() {return this->_boundary;}
 
+std::string Request::getQuery() const {
+    size_t pos = _path.find('?');
+    if (pos != std::string::npos)
+        return _path.substr(pos + 1);
+    return "";
+}
+
 
 /* --- SETTERS--- */
 

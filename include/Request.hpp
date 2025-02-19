@@ -30,6 +30,7 @@ public:
     std::string getContent();
     std::string getBoundary();
     size_t      getContentLen();
+    std::string getQuery() const;
 
     /* --- SETTERS--- */
     void setContent(std::string);
