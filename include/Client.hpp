@@ -73,7 +73,7 @@ class Client
         std::string makeRedirection(std::string, std::string);
         std::string listDir(std::string);
         std::string displayList(std::vector<std::string>);
-        std::string executeCGI(const std::string& scriptPath);
+        std::string executeCGI(const std::string& scriptPath, std::string query);
 
         /* ---ATTRIBUTES---*/
         ServerConfig    _server;

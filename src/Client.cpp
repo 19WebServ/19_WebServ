@@ -34,9 +34,11 @@ void    Client::parseRequest(std::string request)
     getline(ss, location, '/'); // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
     if (!ss.eof() && location.empty())
         getline(ss, location, '/');
-    path = path.erase(0, 1);
     if (!path.empty())
-        path = path.substr(location.size());
+        path = path.substr(location.size() + 1);
+    std::cout << "AV "<< path << std::endl;
+    path = path.erase(0, 1);
+    std::cout << "AP "<< path << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -121,6 +123,7 @@ std::string Client::respondToGet()
     std::string locationBlock = _request.getLocation();
     std::string locationRoot = _server.getLocationRoot(locationBlock);
     std::string locationIndex;
+    std::string query;
     bool download = false;
 
     if (_request.getPath().empty())
@@ -131,14 +134,20 @@ std::string Client::respondToGet()
     if (!_server.getLocationRedirect(locationBlock).empty())
         response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
-        if (path.size() > 3 && (path.substr(path.size() - 4) == ".py?" || path.substr(path.size() - 4) == ".pl?"))
-            return executeCGI(path.substr(0, path.size() - 1));
-        if (path.find("?download=true") != std::string::npos) {
-            download = true;
+        if (path.find("?") != std::string::npos) 
+        {
+            if (path.find("download=true"))
+                download = true;
             std::istringstream ss;
             ss.str(path);
             getline(ss, path, '?');
+            getline(ss, query, '\0');
         }
+        std::cout << path << std::endl;
+        std::cout<< "Root : "<< locationRoot << std::endl;
+        std::cout<< "Index : "<< locationIndex << std::endl;
+        if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
+            return executeCGI(path.substr(0, path.size()), query);
         if (Utils::isFile(path)) {
             if (!Utils::hasReadPermission((path).c_str()))
                 throw std::runtime_error("403 Forbidden");
@@ -187,7 +196,7 @@ std::string Client::respondToPost()
     std::string locationIndex = _request.getPath();
     std::string path = locationRoot + "/" + locationIndex;
     if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl" || path.substr(path.size() - 4) == ".cgi")) {
-        return executeCGI(path);
+        return executeCGI(path, "");
     }
     std::string response;
     postContent();
@@ -316,7 +325,7 @@ std::string Client::displayList(std::vector<std::string> listing)
     return htmlContent;
 }
 
-std::string Client::executeCGI(const std::string& scriptPath) 
+std::string Client::executeCGI(const std::string& scriptPath, std::string query) 
 {
     int pipefd[2];
     if (pipe(pipefd) == -1)
@@ -331,7 +340,9 @@ std::string Client::executeCGI(const std::string& scriptPath)
         close(pipefd[1]);
 
         std::string method = _request.getMethod();
-        std::string queryString = _request.getQuery();
+        if (query.empty())
+            std::string queryString = _request.getQuery();
+        std::string queryString = query;
         std::string body = _request.getContent();
         std::string contentLength = std::to_string(body.size());
 
@@ -343,6 +354,7 @@ std::string Client::executeCGI(const std::string& scriptPath)
 
         char *argv[] = {(char *)scriptPath.c_str(), NULL};
         char *envp[] = {NULL};
+        std::cerr << "AV[0] " << argv[0] << std::endl;
         execve(argv[0], argv, envp);
         perror("execve");
         exit(1);
