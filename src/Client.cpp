@@ -36,9 +36,7 @@ void    Client::parseRequest(std::string request)
         getline(ss, location, '/');
     if (!path.empty())
         path = path.substr(location.size() + 1);
-    std::cout << "AV "<< path << std::endl;
     path = path.erase(0, 1);
-    std::cout << "AP "<< path << std::endl;
     for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
         if (method == _server.getLocationAllowedMethods(location)[i]) {
             createRequest(request, location, method, path);
@@ -143,7 +141,6 @@ std::string Client::respondToGet()
             getline(ss, path, '?');
             getline(ss, query, '\0');
         }
-        std::cout << path << std::endl;
         std::cout<< "Root : "<< locationRoot << std::endl;
         std::cout<< "Index : "<< locationIndex << std::endl;
         if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
@@ -170,7 +167,7 @@ std::string Client::respondToGet()
         else
             throw std::runtime_error("404 Not Found");
         std::string type = Utils::findType(locationIndex);
-        size_t fileNamePos = locationIndex.find_last_of('/', 0);
+        size_t fileNamePos = path.find_last_of('/');
         response = 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: " + type + "\r\n"
@@ -344,7 +341,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
             std::string queryString = _request.getQuery();
         std::string queryString = query;
         std::string body = _request.getContent();
-        std::string contentLength = std::to_string(body.size());
+        std::string contentLength = Utils::intToStr(body.size());
 
         setenv("REQUEST_METHOD", method.c_str(), 1);
         setenv("QUERY_STRING", queryString.c_str(), 1);
@@ -378,7 +375,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
 
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
-           "Content-Length: " + std::to_string(output.size()) + "\r\n"
+           "Content-Length: " + Utils::intToStr(output.size()) + "\r\n"
            "Connection: keep-alive\r\n\r\n" +
            output;
 }
