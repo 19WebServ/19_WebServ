@@ -144,6 +144,7 @@ std::string Client::respondToGet()
             getline(ss, query, '\0');
         }
         std::cout << path << std::endl;
+        std::cout << query << std::endl;
         std::cout<< "Root : "<< locationRoot << std::endl;
         std::cout<< "Index : "<< locationIndex << std::endl;
         if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
@@ -330,36 +331,49 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
     int pipefd[2];
     if (pipe(pipefd) == -1)
         throw std::runtime_error("500 Internal Server Error: Pipe failed");
+
     pid_t pid = fork();
     if (pid < 0)
         throw std::runtime_error("500 Internal Server Error: Fork failed");
+
     if (pid == 0) {
         close(pipefd[0]);
-
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
 
         std::string method = _request.getMethod();
-        if (query.empty())
-            std::string queryString = _request.getQuery();
-        std::string queryString = query;
+        std::string queryString = query.empty() ? _request.getQuery() : query;
         std::string body = _request.getContent();
+        if (!body.empty()) body.pop_back();
         std::string contentLength = std::to_string(body.size());
 
-        setenv("REQUEST_METHOD", method.c_str(), 1);
-        setenv("QUERY_STRING", queryString.c_str(), 1);
-        setenv("CONTENT_LENGTH", contentLength.c_str(), 1);
-        setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
-        setenv("SCRIPT_FILENAME", scriptPath.c_str(), 1);
+        std::vector<std::string> envVars;
+        envVars.push_back("REQUEST_METHOD=" + method);
+        if (queryString.empty())
+            queryString = body;
+        envVars.push_back("QUERY_STRING=" + queryString);
+        envVars.push_back("CONTENT_LENGTH=" + contentLength);
+        envVars.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");
+        envVars.push_back("SCRIPT_FILENAME=" + scriptPath);
+
+        std::vector<char*> envp;
+        for (size_t i = 0; i < envVars.size(); ++i)
+            envp.push_back(const_cast<char*>(envVars[i].c_str()));
+        envp.push_back(NULL);
+
+        std::cerr << "=== ENVIRONMENT VARIABLES ===" << std::endl;
+        for (size_t i = 0; envp[i] != NULL; i++) {
+            std::cerr << envp[i] << std::endl;
+        }
+        std::cerr << "=============================" << std::endl;
 
         char *argv[] = {(char *)scriptPath.c_str(), NULL};
-        char *envp[] = {NULL};
-        std::cerr << "AV[0] " << argv[0] << std::endl;
-        execve(argv[0], argv, envp);
+        std::cerr << "HOOOOO" << std::endl;
+        execve(argv[0], argv, &envp[0]);
+        std::cerr << "AAAAAA" << std::endl;
         perror("execve");
         exit(1);
     }
-
     close(pipefd[1]);
     char buffer[4096];
     std::string output;
@@ -371,11 +385,12 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
         output += buffer;
     }
     close(pipefd[0]);
+
     int status;
     waitpid(pid, &status, 0);
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
         throw std::runtime_error("500 Internal Server Error: CGI script failed");
-
+    std::cout << "OLAAAA" << std::endl;
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
            "Content-Length: " + std::to_string(output.size()) + "\r\n"
