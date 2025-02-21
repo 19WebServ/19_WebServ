@@ -5,57 +5,75 @@
 
 Socket* Socket::_instance = NULL;
 
-Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server) : _ports(ports) , _servers(server)
+Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &servers) 
+    : _ports(ports), _servers(servers) 
 {
-    for (size_t i = 0; i < this->_ports.size(); i ++)
+    for (size_t i = 0; i < _servers.size(); i++) // Parcourir chaque serveur
     {
-        int serverSock = socket(AF_INET, SOCK_STREAM, 0);
-        if (serverSock < 0)
-        {
-            std::cerr<< "Error\n!! Socket creation failure !!" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        int opt = 1;
-        if (setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
-        {
-            std::cerr << "Error\nFailed to set socket options" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        int current_opt = 1;
-        socklen_t opt_len = sizeof(current_opt);
-        if (getsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &current_opt, &opt_len) == 0)
-            std::cout << "SO_REUSEADDR option is set to: " << current_opt << std::endl;
-        else
-            std::cerr << "Failed to get SO_REUSEADDR option." << std::endl;
-        sockaddr_in serverAddr;
-        serverAddr.sin_family = AF_INET;
-        serverAddr.sin_port = htons(this->_ports[i]);
-        serverAddr.sin_addr.s_addr = htons(INADDR_ANY);
-        if (bind(serverSock, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) < 0) 
-        {
-            std::cerr << "Error\nSocket binding failure" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        if (listen(serverSock, SOMAXCONN) < 0) 
-        {
-            std::cerr << "Error\nSocket wiretap failure" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        if (fcntl(serverSock, F_SETFL, O_NONBLOCK) < 0)
-        {
-            std::cerr << "Error\nFailed non-blocking mode" << std::endl;
-            closeFds(this->_serverSocks);
-        }
-        struct pollfd serverPollFd;
-        serverPollFd.fd = serverSock;
-        serverPollFd.events = POLLIN;
+        const std::vector<int> &serverPorts = _servers[i].getPort(); // Récupérer les ports du serveur
 
-        this->_poll_fds.push_back(serverPollFd);
-        this->_serverSocks.push_back(serverSock);
+        for (size_t j = 0; j < serverPorts.size(); j++) // Parcourir chaque port du serveur
+        {
+            int serverSock = socket(AF_INET, SOCK_STREAM, 0);
+            if (serverSock < 0)
+            {
+                std::cerr << "❌ Erreur : Échec de création du socket pour le serveur " 
+                          << i << " sur le port " << serverPorts[j] << std::endl;
+                closeFds(this->_serverSocks);
+                return;
+            }
+
+            int opt = 1;
+            if (setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+            {
+                std::cerr << "❌ Erreur : Impossible de configurer le socket en réutilisation d'adresse" << std::endl;
+                closeFds(this->_serverSocks);
+                return;
+            }
+
+            sockaddr_in serverAddr;
+            serverAddr.sin_family = AF_INET;
+            serverAddr.sin_port = htons(serverPorts[j]); // Associer le bon port
+            serverAddr.sin_addr.s_addr = INADDR_ANY; // Accepter toutes les connexions entrantes
+
+            if (bind(serverSock, reinterpret_cast<struct sockaddr *>(&serverAddr), sizeof(serverAddr)) < 0)
+            {
+                std::cerr << "❌ Erreur : Impossible de binder le serveur " << i 
+                          << " au port " << serverPorts[j] << std::endl;
+                closeFds(this->_serverSocks);
+                return;
+            }
+
+            if (listen(serverSock, SOMAXCONN) < 0)
+            {
+                std::cerr << "❌ Erreur : Impossible d'écouter sur le serveur " << i 
+                          << " au port " << serverPorts[j] << std::endl;
+                closeFds(this->_serverSocks);
+                return;
+            }
+
+            if (fcntl(serverSock, F_SETFL, O_NONBLOCK) < 0)
+            {
+                std::cerr << "❌ Erreur : Impossible d'activer le mode non-bloquant" << std::endl;
+                closeFds(this->_serverSocks);
+                return;
+            }
+
+            struct pollfd serverPollFd;
+            serverPollFd.fd = serverSock;
+            serverPollFd.events = POLLIN;
+
+            this->_poll_fds.push_back(serverPollFd);
+            this->_serverSocks.push_back(serverSock);
+
+            std::cout << "✅ Serveur " << i << " écoutant sur le port " << serverPorts[j] << std::endl;
+        }
     }
+
     this->_instance = this;
     std::signal(SIGINT, Socket::signalHandler);
 }
+
 
 Socket::~Socket()
 {
@@ -169,7 +187,21 @@ void Socket::closeFds(std::vector<int>serverSocks)
 
 void Socket::acceptConnection(int serverSock, int i) 
 {
-    Client client(serverSock, i, this->getPort(i),  this->getServer(i));
+    int port = this->getPort(i);
+    ServerConfig temp;
+    size_t j = 0;
+    for (;j < this->_servers.size(); j++)
+    {
+        for (size_t k = 0; k < this->_servers[j].getPort().size(); k++)
+        {
+            if (this->_servers[j].getPort()[k] == port)
+            {
+                temp = this->_servers[j];
+                break;
+            }
+        }
+    }
+    Client client(serverSock, i, port, temp);
     client.setTimeLastRequest();
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
