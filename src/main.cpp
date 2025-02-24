@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
         // Charger le fichier de configuration
         ConfigFile configFile(file);
         std::vector<ServerConfig> servers = configFile.getServer();
-
         // Récupérer tous les ports
         std::vector<int> allPorts;
         for (size_t i = 0; i < servers.size(); i++) {

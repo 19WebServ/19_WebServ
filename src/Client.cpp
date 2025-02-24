@@ -21,7 +21,7 @@ void    Client::parseRequest(std::string request)
     std::string path;
     std::string location;
     bool allowed = false;
-
+    
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
     if (request.find("HTTP/1.1") == std::string::npos)
@@ -52,28 +52,29 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
 {
     Request temp(location, path, method);
 
-    if (method == "POST") {
-        std::istringstream ss;
-        std::string line;
-        std::string body = "";
-        size_t pos;
-    
-        ss.str(requestStr);
-        while (getline(ss, line)) {
-            pos = line.find("boundary=");
-            if (pos != std::string::npos)
-                temp.setBoundary(line.substr(pos + 9));
-            if (!line.empty() && line[line.size() - 1] == '\r')
-                line = line.substr(0, line.size() - 1);
-            std::cout << line << std::endl;
-            if (line.empty())
-                break;
-        }
-        while (getline(ss, line)) {
-            body += (line + '\n');
-        }
-        temp.setContent(body);
+    std::istringstream ss;
+    std::string line;
+    std::string body;
+    size_t pos;
+
+    ss.str(requestStr);
+    while (getline(ss, line)) {
+        pos = line.find("boundary=");
+        if (pos != std::string::npos)
+            temp.setBoundary(line.substr(pos + 9));
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line = line.substr(0, line.size() - 1);
+        // std::cout << line << std::endl;
+        if (line.empty())
+            break;
     }
+    while (getline(ss, line)) {
+        body += (line + '\n');
+    }
+    std::cout << "request size : " << body.size() << std::endl;
+    if (body.size() > _maxBodySize)
+        throw std::runtime_error("413 Content Too Large");
+    temp.setContent(body);
     this->_request = temp;
 }
 
@@ -166,6 +167,9 @@ std::string Client::respondToGet()
         }
         else
             throw std::runtime_error("404 Not Found");
+        std::cout << "response size : " << htmlContent.size() << std::endl;
+        if (htmlContent.size() > _maxBodySize)
+            throw std::runtime_error("413 Content Too Large");
         std::string type = Utils::findType(locationIndex);
         size_t fileNamePos = path.find_last_of('/');
         response = 
@@ -399,10 +403,10 @@ std::string Client::handleErrorResponse(std::string error)
             htmlContent = Utils::readFile(root + errorPage);
         else
             htmlContent = error;
-
         if (htmlContent.empty())
             throw std::runtime_error("Failed to read html file.");
-
+        if (htmlContent.size() > _maxBodySize)
+            throw std::runtime_error("413 Content Too Large");
         response =
         "HTTP/1.1 " + error + "\r\n"
         "Content-Type: text/html; charset=UTF-8\r\n"
