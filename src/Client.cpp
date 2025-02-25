@@ -347,7 +347,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
         std::string queryString = query.empty() ? _request.getQuery() : query;
         std::string body = _request.getContent();
         if (!body.empty()) body.pop_back();
-        std::string contentLength = std::to_string(body.size());
+        std::string contentLength = Utils::intToStr(body.size());
 
         std::vector<std::string> envVars;
         envVars.push_back("REQUEST_METHOD=" + method);
