@@ -21,30 +21,38 @@ void    Client::parseRequest(std::string request)
     std::string path;
     std::string location;
     bool allowed = false;
-    
+
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    if (request.find("HTTP/1.1") == std::string::npos)
-        throw std::runtime_error("400 Bad Request");
-    std::cout << "\n" << request << std::endl;
-    getline(ss, method, ' ');
-    getline(ss, path, ' ');
-    ss.clear();
-    ss.str(path);
-    getline(ss, location, '/'); // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
-    if (!ss.eof() && location.empty())
-        getline(ss, location, '/');
-    if (!path.empty())
-        path = path.substr(location.size() + 1);
-    path = path.erase(0, 1);
-    for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
-        if (method == _server.getLocationAllowedMethods(location)[i]) {
-            createRequest(request, location, method, path);
-            allowed = true;
-        }
+    if (_request.getIfComplete() == false) {
+        std::string totalRequest = _request.getContent() + request;
+        _request.setContent(totalRequest);
+        if (totalRequest.size() == _request.getContentLen())
+            _request.setComplete(true);
     }
-    if (allowed == false)
-        throw std::runtime_error("405 Method Not Allowed");
+    else if (_request.getContent().find("HTTP/1.1") == std::string::npos)
+        throw std::runtime_error("400 Bad Request");
+    else {
+        std::cout << "\n" << request << std::endl;
+        getline(ss, method, ' ');
+        getline(ss, path, ' ');
+        ss.clear();
+        ss.str(path);
+        getline(ss, location, '/'); // Voir comment je dois gerer ici -> differencier une requete d'une page direct d'une location vide
+        if (!ss.eof() && location.empty())
+            getline(ss, location, '/');
+        if (!path.empty())
+            path = path.substr(location.size() + 1);
+        path = path.erase(0, 1);
+        for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
+            if (method == _server.getLocationAllowedMethods(location)[i]) {
+                createRequest(request, location, method, path);
+                allowed = true;
+            }
+        }
+        if (allowed == false)
+            throw std::runtime_error("405 Method Not Allowed");
+    }
 }
 
 // cree un objet requete avec les infos importantes du header et, si Post, recupere le body
@@ -62,6 +70,9 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
         pos = line.find("boundary=");
         if (pos != std::string::npos)
             temp.setBoundary(line.substr(pos + 9));
+        pos = line.find("Content-Length: ");
+        if (pos != std::string::npos)
+            temp.setContentLen(atoi(line.substr(pos + 16).c_str()));
         if (!line.empty() && line[line.size() - 1] == '\r')
             line = line.substr(0, line.size() - 1);
         // std::cout << line << std::endl;
@@ -71,7 +82,15 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
     while (getline(ss, line)) {
         body += (line + '\n');
     }
-    std::cout << "request size : " << body.size() << std::endl;
+    std::cout << "body size: " << body.size() << std::endl;
+    std::cout << "content len: " << temp.getContentLen() << std::endl;
+    if (temp.getContentLen() == body.size()) {
+        std::cout << "okokok" << std::endl;
+        temp.setComplete(true);
+    }
+    else
+        temp.setComplete(false);
+    // std::cout << "request size : " << body.size() << std::endl;
     if (body.size() > _maxBodySize)
         throw std::runtime_error("413 Content Too Large");
     temp.setContent(body);
@@ -346,7 +365,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
         std::string method = _request.getMethod();
         std::string queryString = query.empty() ? _request.getQuery() : query;
         std::string body = _request.getContent();
-        if (!body.empty()) body.pop_back();
+        if (!body.empty()) body.substr(0, body.size() - 1);
         std::string contentLength = Utils::intToStr(body.size());
 
         std::vector<std::string> envVars;
@@ -415,8 +434,11 @@ std::string Client::handleErrorResponse(std::string error)
     if (Utils::areOnlyDigits(word)) {
         errorPage = _server.getErrorPage(atoi(word.c_str()));
         root = _server.getRoot();
-        if (!errorPage.empty())
+        if (!errorPage.empty()) {
             htmlContent = Utils::readFile(root + errorPage);
+            if (htmlContent.size() > _maxBodySize)
+                htmlContent = error;
+        }
         else
             htmlContent = error;
         if (htmlContent.empty())
@@ -458,6 +480,8 @@ size_t Client::getTimeout() {return this->_timeout;}
 size_t Client::getTimeLastRequest() {return this->_timeLastRequest;}
 
 std::string Client::getIp() {return this->_ip;}
+
+Request Client::getRequest() {return this->_request;} 
 
 
 /* ---SETTERS--- */

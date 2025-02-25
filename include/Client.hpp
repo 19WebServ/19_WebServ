@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 17:32:17 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/19 13:08:44 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/25 16:18:35 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class Client
         size_t      getTimeout();
         size_t      getTimeLastRequest();
         std::string getIp();
+        Request     getRequest();
         // std::string getRequestStr();
 
         /* ---SETTERS--- */

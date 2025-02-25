@@ -242,11 +242,11 @@ void Socket::acceptConnection(int serverSock, int i)
 
 void    Socket::handleClient(int &clientFd, Client client)
 {
-    size_t maxSize = client.getMaxBodySize();
+    // std::cout << "ICI " << std::endl;
     client.setTimeLastRequest();
     std::string request;
 
-    int bytes_receiv = this->receiveData(clientFd, request, maxSize);
+    int bytes_receiv = this->receiveData(clientFd, request);
     if (bytes_receiv > 0)
     {
         if (this->processingRequest(request, bytes_receiv, clientFd, client))
@@ -284,23 +284,26 @@ int Socket::processingRequest(std::string requestStr, int bytes_receive, int cli
     std::string response;
     try {
         client.parseRequest(requestStr);
-        response = client.sendResponse();
+        if (client.getRequest().getIfComplete() == true)
+            response = client.sendResponse();
     }
     catch(const std::exception& e) {
         response = client.handleErrorResponse(e.what());
     }
-    
-    int total_sent = 0;
-    // std::cout << "response " << response.c_str() << std::endl;
-    while (total_sent < (int)response.size())
+    if (client.getRequest().getIfComplete() == true)    
     {
-        int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
-        if (bytes_sent > 0)
-            total_sent += bytes_sent;
-        else {
-            if (bytes_sent < 0)
-                std::cerr << "Failed to send response to client." << std::endl;
-            break;
+        int total_sent = 0;
+        // std::cout << "response " << response.c_str() << std::endl;
+        while (total_sent < (int)response.size())
+        {
+            int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
+            if (bytes_sent > 0)
+                total_sent += bytes_sent;
+            else {
+                if (bytes_sent < 0)
+                    std::cerr << "Failed to send response to client." << std::endl;
+                break;
+            }
         }
     }
     return 0;
@@ -319,28 +322,47 @@ int Socket::sendData(int target_sock, const char *data, unsigned int len)
     return res;
 }
 
-int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
+// int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
+// {
+//     char buffer[];
+//     if (target_sock < 0)
+//     {
+//         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
+//         return -1;
+//     }
+//     int totalReceived = 0;
+//     int res = 0;
+//     while (true)
+//     {
+//         res = recv(target_sock, buffer, len, 0);
+//         if (res > 0){
+//             request.append(buffer, res);// QUAND FICHIER TROP GROS ABORT ICI
+//             totalReceived += res;
+//         }
+//         if (res <= 0)
+//             break;
+//     }
+//     // std::cout << "receive = " << totalReceived << std::endl;
+//     return totalReceived;
+// }
+
+int Socket::receiveData(int target_sock, std::string &request)
 {
-    char buffer[1024];
+    char buffer[2048];
     if (target_sock < 0)
     {
         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
         return -1;
     }
-    int totalReceived = 0;
-    int res = 0;
-    while (true)
-    {
-        res = recv(target_sock, buffer, len, 0);
-        if (res > 0){
-            request.append(buffer, res);// QUAND FICHIER TROP GROS ABORT ICI
-            totalReceived += res;
-        }
-        if (res <= 0)
-            break;
-    }
-    // std::cout << "receive = " << totalReceived << std::endl;
-    return totalReceived;
+    int res;
+    std::cout << "ok" << std::endl;
+    res = recv(target_sock, buffer, sizeof(buffer) - 1, 0);
+    std::cout << "ok apres recv" << std::endl;
+    if (res <= 0)
+        return 0;
+    buffer[res] = '\0';
+    request = buffer;
+    return res;
 }
 
 std::string Socket::getClientIP(struct sockaddr_in *client_addr)

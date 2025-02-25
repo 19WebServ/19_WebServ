@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 14:46:03 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/01/21 22:20:10 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/25 17:12:15 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,20 +30,28 @@ public:
     std::string getContent();
     std::string getBoundary();
     size_t      getContentLen();
+    bool        getIfComplete();
     std::string getQuery() const;
 
     /* --- SETTERS--- */
+    void setLocation(std::string);
+    void setPath(std::string);
+    void setMethos(std::string);
     void setContent(std::string);
     void setBoundary(std::string);
+    void setContentLen(int);
+    void setComplete(bool);
     
 private:
     /* ---ATTRIBUTES--- */
     std::string _method;
     std::string _location;
     std::string _path;
+    std::string _header;
     std::string _content;
     size_t      _contentLen;
     std::string _boundary;
+    bool        _complete;
 };
 
 #endif
