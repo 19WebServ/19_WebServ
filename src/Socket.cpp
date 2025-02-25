@@ -242,7 +242,6 @@ void Socket::acceptConnection(int serverSock, int i)
 
 void    Socket::handleClient(int &clientFd, Client client)
 {
-    // std::cout << "ICI " << std::endl;
     client.setTimeLastRequest();
     std::string request;
 
@@ -355,9 +354,7 @@ int Socket::receiveData(int target_sock, std::string &request)
         return -1;
     }
     int res;
-    std::cout << "ok" << std::endl;
     res = recv(target_sock, buffer, sizeof(buffer) - 1, 0);
-    std::cout << "ok apres recv" << std::endl;
     if (res <= 0)
         return 0;
     buffer[res] = '\0';

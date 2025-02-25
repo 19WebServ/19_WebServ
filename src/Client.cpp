@@ -24,13 +24,14 @@ void    Client::parseRequest(std::string request)
 
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
+    std::cout << request << std::endl;
     if (_request.getIfComplete() == false) {
         std::string totalRequest = _request.getContent() + request;
         _request.setContent(totalRequest);
         if (totalRequest.size() == _request.getContentLen())
             _request.setComplete(true);
     }
-    else if (_request.getContent().find("HTTP/1.1") == std::string::npos)
+    else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos)
         throw std::runtime_error("400 Bad Request");
     else {
         std::cout << "\n" << request << std::endl;
@@ -68,8 +69,10 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
     ss.str(requestStr);
     while (getline(ss, line)) {
         pos = line.find("boundary=");
-        if (pos != std::string::npos)
+        if (pos != std::string::npos) {
             temp.setBoundary(line.substr(pos + 9));
+            std::cout << "boundary: " << temp.getBoundary() << std::endl;
+        }
         pos = line.find("Content-Length: ");
         if (pos != std::string::npos)
             temp.setContentLen(atoi(line.substr(pos + 16).c_str()));
@@ -84,13 +87,10 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
     }
     std::cout << "body size: " << body.size() << std::endl;
     std::cout << "content len: " << temp.getContentLen() << std::endl;
-    if (temp.getContentLen() == body.size()) {
-        std::cout << "okokok" << std::endl;
+    if (temp.getContentLen() == body.size())
         temp.setComplete(true);
-    }
     else
         temp.setComplete(false);
-    // std::cout << "request size : " << body.size() << std::endl;
     if (body.size() > _maxBodySize)
         throw std::runtime_error("413 Content Too Large");
     temp.setContent(body);
