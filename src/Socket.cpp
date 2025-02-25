@@ -244,7 +244,8 @@ void    Socket::handleClient(int &clientFd, Client client)
 {
     size_t maxSize = client.getMaxBodySize();
     client.setTimeLastRequest();
-    std::string request = "";
+    std::string request;
+
     int bytes_receiv = this->receiveData(clientFd, request, maxSize);
     if (bytes_receiv > 0)
     {
@@ -320,7 +321,7 @@ int Socket::sendData(int target_sock, const char *data, unsigned int len)
 
 int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
 {
-    char buffer[len];
+    char buffer[1024];
     if (target_sock < 0)
     {
         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
@@ -332,13 +333,13 @@ int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
     {
         res = recv(target_sock, buffer, len, 0);
         if (res > 0){
-            request.append(buffer, res);
+            request.append(buffer, res);// QUAND FICHIER TROP GROS ABORT ICI
             totalReceived += res;
         }
         if (res <= 0)
             break;
     }
-    std::cout << "receive = " << totalReceived << std::endl;
+    // std::cout << "receive = " << totalReceived << std::endl;
     return totalReceived;
 }
 

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/17 16:15:15 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/24 18:04:23 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,3 +210,11 @@ bool Utils::isDeletable(std::string path, std::string file)
         throw std::runtime_error("403 Forbiden");
     return true;
 }
+
+// bool Utils::tooLarge(std::string request, size_t maxBody)
+// {
+//     std::string body;
+//     std::istringstream ss;
+//     ss.str(request);
+    
+// }

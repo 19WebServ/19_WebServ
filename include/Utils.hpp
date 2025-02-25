@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:46:22 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/08 19:09:31 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/24 18:04:18 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ namespace Utils
     size_t getTime();
     std::string findType(std::string);
     bool isDeletable(std::string, std::string);
+    // bool Utils::tooLarge(std::string, size_t);
 }
 
 #endif
