@@ -74,6 +74,10 @@ Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &s
     std::signal(SIGINT, Socket::signalHandler);
 }
 
+Socket::Socket(const Socket &rhs) {
+    *this = rhs;
+    // std::cout << "Socket copy construct" << std::endl;
+}
 
 Socket::~Socket()
 {
@@ -96,13 +100,13 @@ void Socket::launchServer()
             int fd = this->_poll_fds[i].fd;
             if (this->_poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
             {
-                // std::cout << "POLLHUP detected" << std::endl;
+                std::cout << "POLLHUP detected" << std::endl;
                 close(fd);
                 for (size_t j = 0; j < this->_clients.size(); j++)
                 {
                     if (this->_clients[j].getClientFd() == fd)
                     {
-                        // std::cout<< "Client Disconnected" << std::endl;
+                        std::cout<< "Client erase POLL..." << std::endl;
                         this->_clients.erase(this->_clients.begin() + j);
                         break;
                     }
@@ -114,6 +118,7 @@ void Socket::launchServer()
             if (this->_poll_fds[i].revents & POLLIN)
             {
                 bool newConnection = false;
+                std::cout << "new connection " << std::endl;
                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
                 {
                     if (fd == this->_serverSocks[j])
@@ -144,6 +149,7 @@ void Socket::launchServer()
                 // std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
 
                 close(fd);
+                std::cout << "Client erase timeout" << std::endl;
                 this->_clients.erase(this->_clients.begin() + k);
                 for (size_t i = 0; i < this->_poll_fds.size(); i++)
                 {
@@ -214,7 +220,7 @@ void Socket::acceptConnection(int serverSock, int i)
             closeFds(this->_serverSocks);
         }
         std::string clientIP = getClientIP(&client_addr);
-        std::cout << "Client connected: " << clientIP << std::endl;
+        // std::cout << "Client connected: " << clientIP << std::endl;
 
         int error = 0;
         socklen_t len = sizeof(error);
@@ -240,11 +246,11 @@ void Socket::acceptConnection(int serverSock, int i)
         std::cerr << "Error\nFailed to accept client connection." << std::endl;
 }
 
-void    Socket::handleClient(int &clientFd, Client client)
+void    Socket::handleClient(int &clientFd, Client &client)
 {
     client.setTimeLastRequest();
     std::string request;
-
+    std::cout << "before recv data" << std::endl;
     int bytes_receiv = this->receiveData(clientFd, request);
     if (bytes_receiv > 0)
     {
@@ -277,8 +283,9 @@ void    Socket::handleClient(int &clientFd, Client client)
     }
 }
 
-int Socket::processingRequest(std::string requestStr, int bytes_receive, int clientFd, Client client)
+int Socket::processingRequest(std::string requestStr, int bytes_receive, int clientFd, Client &client)
 {
+        std::cout << "Processing reauest strt" << std::endl;
     (void)bytes_receive;
     std::string response;
     try {

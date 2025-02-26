@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 21:45:59 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/25 16:00:15 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/26 14:36:35 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Socket
 {
     public:
         Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &server);
+        Socket(const Socket &rhs);
         ~Socket();
 
         void            launchServer();
@@ -44,9 +45,9 @@ class Socket
         /* ---METHODS--- */
         void        closeFds(std::vector<int>serverSocks);
         void        acceptConnection(int serverSock, int i);
-        void        handleClient(int &clientFd, Client client);
+        void        handleClient(int &clientFd, Client &client);
         std::string getClientIP(struct sockaddr_in *client_addr);
-        int         processingRequest(std::string request, int bytes_receive, int clientFd, Client client);
+        int         processingRequest(std::string request, int bytes_receive, int clientFd, Client &client);
         int         sendData(int target_sock, const char *data, unsigned int len);
         int         receiveData(int target_sock, std::string &request);
 

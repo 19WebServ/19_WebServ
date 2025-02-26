@@ -3,6 +3,12 @@
 Client::Client(int serverFd, int indexServerSock, int port, ServerConfig server) : _server(server), _serverFd(serverFd), _indexServerFd(indexServerSock), _port(port)
 {
     this->_maxBodySize = this->_server.getBodySize();
+    // std::cerr << "client cree" << std::endl;
+}
+
+Client::Client(const Client &rhs) {
+    *this = rhs;
+    // std::cout << "Client copy construct" << std::endl;
 }
 
 Client::Client(){}
@@ -21,24 +27,21 @@ void    Client::parseRequest(std::string request)
     std::string path;
     std::string location;
     bool allowed = false;
-
-        std::cout << "IS COMPLETE ?" << _request.getIfComplete() << std::endl;
+    std::cout << "start arse request" << std::endl;
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
-    std::cout << request << std::endl;
-    std::cout << "\n---- REQUEST SIZE :  ----" << request.size() << "\n" << std::endl;
     if (_request.getIfComplete() == false) {
         std::string totalRequest = _request.getContent() + request;
         _request.setContent(totalRequest);
-        if (totalRequest.size() == _request.getContentLen()) {
+        std::cout << "Total request size :" << totalRequest.size() << std::endl;
+        std::cout << "Needed content len :" << _request.getContentLen() << std::endl;
+        if (totalRequest.size() - 1 == _request.getContentLen()) {
             std::cout << "\n REQUEST COMPLETED\n" << std::endl;
             _request.setComplete(true);
         }
     }
-    else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos) {
-        std::cout << "je rentre ici mais je devrais pas" << std::endl;
+    else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos)
         throw std::runtime_error("400 Bad Request");
-    }
     else {
         // std::cout << "\n" << request << std::endl;
         getline(ss, method, ' ');
@@ -94,14 +97,10 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
     // std::cout << "body size: " << body.size() << std::endl;
     // std::cout << "content len: " << temp.getContentLen() << std::endl;
 
-    if (temp.getContentLen() == body.size()) {
-        std::cout << "\nREQUEST IS SET TO TRUE !!!!!!!!!!!!!! " << body.size() << "\n" << std::endl;
+    if (temp.getContentLen() == body.size())
         temp.setComplete(true);
-    }
-    else {
-        std::cout << "\nREQUEST IS SET TO FALSE !!!!!!!!!!!!!! " << body.size() << "\n" << std::endl;
+    else
         temp.setComplete(false);
-    }
     if (body.size() > _maxBodySize)
         throw std::runtime_error("413 Content Too Large");
     temp.setContent(body);

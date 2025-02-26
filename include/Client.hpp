@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 17:32:17 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/25 16:18:35 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/26 14:33:31 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class Client
     public:
         Client(int ServerFd, int indexServerSock, int port, ServerConfig server);
         Client();
+        Client(const Client &rhs);
         ~Client();
 
         /* ---GETTERS--- */
