@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/15 15:04:14 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/25 19:09:15 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/26 11:48:56 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,19 @@ Request::Request(std::string location, std::string path, std::string method): _m
 
 Request::~Request() {}
 
+Request &Request::operator=(const Request &copy)
+{
+    if (this != &copy) {
+        _method = copy._method;
+        _location = copy._location;
+        _path = copy._path;
+        _content = copy._content;
+        _contentLen = copy._contentLen;
+        _boundary = copy._boundary;
+        _complete = copy._complete;
+    }
+    return *this;
+}
 
 /* ---GETTERS--- */
 

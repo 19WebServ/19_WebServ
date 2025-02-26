@@ -96,13 +96,13 @@ void Socket::launchServer()
             int fd = this->_poll_fds[i].fd;
             if (this->_poll_fds[i].revents & (POLLHUP | POLLERR | POLLNVAL))
             {
-                std::cout << "POLLHUP detected" << std::endl;
+                // std::cout << "POLLHUP detected" << std::endl;
                 close(fd);
                 for (size_t j = 0; j < this->_clients.size(); j++)
                 {
                     if (this->_clients[j].getClientFd() == fd)
                     {
-                        std::cout<< "Client Disconnected" << std::endl;
+                        // std::cout<< "Client Disconnected" << std::endl;
                         this->_clients.erase(this->_clients.begin() + j);
                         break;
                     }
@@ -111,7 +111,7 @@ void Socket::launchServer()
                 i--;
                 continue;
             }
-            else if (this->_poll_fds[i].revents & POLLIN)
+            if (this->_poll_fds[i].revents & POLLIN)
             {
                 bool newConnection = false;
                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
@@ -141,7 +141,7 @@ void Socket::launchServer()
             if (Utils::getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
             {
                 int fd = this->_clients[k].getClientFd();
-                std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
+                // std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
 
                 close(fd);
                 this->_clients.erase(this->_clients.begin() + k);

@@ -22,19 +22,25 @@ void    Client::parseRequest(std::string request)
     std::string location;
     bool allowed = false;
 
+        std::cout << "IS COMPLETE ?" << _request.getIfComplete() << std::endl;
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
     std::cout << request << std::endl;
+    std::cout << "\n---- REQUEST SIZE :  ----" << request.size() << "\n" << std::endl;
     if (_request.getIfComplete() == false) {
         std::string totalRequest = _request.getContent() + request;
         _request.setContent(totalRequest);
-        if (totalRequest.size() == _request.getContentLen())
+        if (totalRequest.size() == _request.getContentLen()) {
+            std::cout << "\n REQUEST COMPLETED\n" << std::endl;
             _request.setComplete(true);
+        }
     }
-    else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos)
+    else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos) {
+        std::cout << "je rentre ici mais je devrais pas" << std::endl;
         throw std::runtime_error("400 Bad Request");
+    }
     else {
-        std::cout << "\n" << request << std::endl;
+        // std::cout << "\n" << request << std::endl;
         getline(ss, method, ' ');
         getline(ss, path, ' ');
         ss.clear();
@@ -71,7 +77,7 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
         pos = line.find("boundary=");
         if (pos != std::string::npos) {
             temp.setBoundary(line.substr(pos + 9));
-            std::cout << "boundary: " << temp.getBoundary() << std::endl;
+            // std::cout << "boundary: " << temp.getBoundary() << std::endl;
         }
         pos = line.find("Content-Length: ");
         if (pos != std::string::npos)
@@ -85,12 +91,17 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
     while (getline(ss, line)) {
         body += (line + '\n');
     }
-    std::cout << "body size: " << body.size() << std::endl;
-    std::cout << "content len: " << temp.getContentLen() << std::endl;
-    if (temp.getContentLen() == body.size())
+    // std::cout << "body size: " << body.size() << std::endl;
+    // std::cout << "content len: " << temp.getContentLen() << std::endl;
+
+    if (temp.getContentLen() == body.size()) {
+        std::cout << "\nREQUEST IS SET TO TRUE !!!!!!!!!!!!!! " << body.size() << "\n" << std::endl;
         temp.setComplete(true);
-    else
+    }
+    else {
+        std::cout << "\nREQUEST IS SET TO FALSE !!!!!!!!!!!!!! " << body.size() << "\n" << std::endl;
         temp.setComplete(false);
+    }
     if (body.size() > _maxBodySize)
         throw std::runtime_error("413 Content Too Large");
     temp.setContent(body);
@@ -161,10 +172,10 @@ std::string Client::respondToGet()
             getline(ss, path, '?');
             getline(ss, query, '\0');
         }
-        std::cout << path << std::endl;
-        std::cout << query << std::endl;
-        std::cout<< "Root : "<< locationRoot << std::endl;
-        std::cout<< "Index : "<< locationIndex << std::endl;
+        // std::cout << path << std::endl;
+        // std::cout << query << std::endl;
+        // std::cout<< "Root : "<< locationRoot << std::endl;
+        // std::cout<< "Index : "<< locationIndex << std::endl;
         if (path.size() > 3 && (path.substr(path.size() - 3) == ".py" || path.substr(path.size() - 3) == ".pl"))
             return executeCGI(path.substr(0, path.size()), query);
         if (Utils::isFile(path)) {
@@ -188,7 +199,7 @@ std::string Client::respondToGet()
         }
         else
             throw std::runtime_error("404 Not Found");
-        std::cout << "response size : " << htmlContent.size() << std::endl;
+        // std::cout << "response size : " << htmlContent.size() << std::endl;
         if (htmlContent.size() > _maxBodySize)
             throw std::runtime_error("413 Content Too Large");
         std::string type = Utils::findType(locationIndex);
@@ -411,7 +422,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
     waitpid(pid, &status, 0);
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
         throw std::runtime_error("500 Internal Server Error: CGI script failed");
-    std::cout << "OLAAAA" << std::endl;
+    // std::cout << "OLAAAA" << std::endl;
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
            "Content-Length: " + Utils::intToStr(output.size()) + "\r\n"
