@@ -118,7 +118,6 @@ void Socket::launchServer()
             if (this->_poll_fds[i].revents & POLLIN)
             {
                 bool newConnection = false;
-                std::cout << "new connection " << std::endl;
                 for (size_t j = 0; j < this->_serverSocks.size(); j++)
                 {
                     if (fd == this->_serverSocks[j])
@@ -250,7 +249,6 @@ void    Socket::handleClient(int &clientFd, Client &client)
 {
     client.setTimeLastRequest();
     std::string request;
-    std::cout << "before recv data" << std::endl;
     int bytes_receiv = this->receiveData(clientFd, request);
     if (bytes_receiv > 0)
     {
@@ -285,7 +283,6 @@ void    Socket::handleClient(int &clientFd, Client &client)
 
 int Socket::processingRequest(std::string requestStr, int bytes_receive, int clientFd, Client &client)
 {
-        std::cout << "Processing reauest strt" << std::endl;
     (void)bytes_receive;
     std::string response;
     try {

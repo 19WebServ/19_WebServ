@@ -27,14 +27,15 @@ void    Client::parseRequest(std::string request)
     std::string path;
     std::string location;
     bool allowed = false;
-    std::cout << "start arse request" << std::endl;
+    
     if (request.find("GET /favicon.ico") != std::string::npos)
         return ;
+    // std::cout << request << std::endl;
     if (_request.getIfComplete() == false) {
         std::string totalRequest = _request.getContent() + request;
         _request.setContent(totalRequest);
-        std::cout << "Total request size :" << totalRequest.size() << std::endl;
-        std::cout << "Needed content len :" << _request.getContentLen() << std::endl;
+        // std::cout << "Total request size :" << totalRequest.size() << std::endl;
+        // std::cout << "Needed content len :" << _request.getContentLen() << std::endl;
         if (totalRequest.size() - 1 == _request.getContentLen()) {
             std::cout << "\n REQUEST COMPLETED\n" << std::endl;
             _request.setComplete(true);
