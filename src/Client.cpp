@@ -3,6 +3,7 @@
 Client::Client(int serverFd, int indexServerSock, int port, ServerConfig server) : _server(server), _serverFd(serverFd), _indexServerFd(indexServerSock), _port(port)
 {
     this->_maxBodySize = this->_server.getBodySize();
+    this->_totalSent = 0;
     // std::cerr << "client cree" << std::endl;
 }
 
@@ -112,7 +113,7 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
 /* ---RESPONSE--- */
 
 // dispatch la requete a la methode correspondante
-std::string    Client::sendResponse()
+void    Client::sendResponse()
 {
     size_t index(0);
     std::string methods[3] = {"GET", "POST", "DELETE"};
@@ -141,7 +142,8 @@ std::string    Client::sendResponse()
     default:
         break;
     }
-    return response;
+    _response = response;
+    _responseLen = _response.size();
 }
 
 // Reponse dans le cas d'une requete GET
@@ -431,7 +433,7 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
 }
 
 // Repond en cas d'erreur, avec la page html correspondante ou une page par defaut si aucune n'a eete specifiee
-std::string Client::handleErrorResponse(std::string error)
+void Client::handleErrorResponse(std::string error)
 {
     std::string word;
     std::string response;
@@ -468,7 +470,8 @@ std::string Client::handleErrorResponse(std::string error)
         std::cerr << "Error: " << error << std::endl;
         std::exit(1); // JE SAIS PAS QUOI METTRE ICI
     }
-    return response;
+    _response = response;
+    _responseLen = _response.size();
 }
 
 
@@ -492,8 +495,13 @@ size_t Client::getTimeLastRequest() {return this->_timeLastRequest;}
 
 std::string Client::getIp() {return this->_ip;}
 
-Request Client::getRequest() {return this->_request;} 
+Request Client::getRequest() {return this->_request;}
 
+std::string Client::getResponse() {return this->_response;}
+
+size_t Client::getResponseLen() {return this->_responseLen;}
+
+size_t Client::getTotalSent() {return this->_totalSent;}
 
 /* ---SETTERS--- */
 
@@ -518,3 +526,5 @@ void Client::setTimeLastRequest()
         this->_timeLastRequest = 0;
     }
 }
+
+void Client::setTotalSent(int totalSent) {this->_totalSent = totalSent;}

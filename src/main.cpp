@@ -39,10 +39,12 @@
 int main(int argc, char **argv) {
     std::string file = "./config/example.conf";
 
-    if (argc == 2) {
-        file = argv[1];
+    if (argc > 2) {
+        std::cerr << "Too many arguments for program launch." << std::endl;
+        return 1;
     }
-
+    else if (argc == 2)
+        file = argv[1];
     try {
         // Charger le fichier de configuration
         ConfigFile configFile(file);

@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/21 17:32:17 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/26 14:33:31 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/27 14:51:14 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,9 @@ class Client
         size_t      getTimeLastRequest();
         std::string getIp();
         Request     getRequest();
+        std::string getResponse();
+        size_t      getResponseLen();
+        size_t      getTotalSent();
         // std::string getRequestStr();
 
         /* ---SETTERS--- */
@@ -53,14 +56,15 @@ class Client
         void    setIndexClientFd(size_t index);
         void    setTimeout(size_t time = 100);
         void    setTimeLastRequest();
+        void    setTotalSent(int);
         // void    setRequest(std::string str);
 
         /* ---REQUEST--- */
         void    parseRequest(std::string);
 
         /* ---RESPONSE--- */
-        std::string sendResponse();
-        std::string handleErrorResponse(std::string);
+        void sendResponse();
+        void handleErrorResponse(std::string);
         
     private:
         /* ---REQUEST--- */
@@ -89,6 +93,11 @@ class Client
         int             _port;
         size_t          _timeLastRequest;
         size_t          _timeout;
+        std::string     _response;
+        size_t          _responseLen;
+        size_t          _totalSent;
+        
+        
 };
 
 #endif

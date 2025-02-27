@@ -134,9 +134,28 @@ void Socket::launchServer()
                         if (this->_clients[k].getClientFd() == fd)
                         {
                             handleClient(fd, this->_clients[k]);
+                            if (this->_clients[k].getRequest().getIfComplete())
+                                this->_poll_fds[i].events |= POLLOUT;
                             break;
                         }
                     }
+                }
+            }
+            if (this->_poll_fds[i].revents & POLLOUT)
+            {
+                for (size_t k = 0; k < this->_clients.size(); k++)
+                {
+                    if (this->_clients[k].getClientFd() == fd)
+                    {
+                        processingResponse(fd, this->_clients[k]);
+                        if (this->_clients[k].getTotalSent() == this->_clients[k].getResponseLen())
+                        {
+                            this->_clients[k].setTotalSent(0);
+                            this->_poll_fds[i].events &= ~POLLOUT;
+                        }
+                        break;
+                    }
+
                 }
             }
         }
@@ -219,7 +238,7 @@ void Socket::acceptConnection(int serverSock, int i)
             closeFds(this->_serverSocks);
         }
         std::string clientIP = getClientIP(&client_addr);
-        // std::cout << "Client connected: " << clientIP << std::endl;
+        std::cout << "Client connected: " << clientIP << std::endl;
 
         int error = 0;
         socklen_t len = sizeof(error);
@@ -252,7 +271,7 @@ void    Socket::handleClient(int &clientFd, Client &client)
     int bytes_receiv = this->receiveData(clientFd, request);
     if (bytes_receiv > 0)
     {
-        if (this->processingRequest(request, bytes_receiv, clientFd, client))
+        if (this->processingRequest(request, client))
             return ;
     }
     else  
@@ -281,73 +300,47 @@ void    Socket::handleClient(int &clientFd, Client &client)
     }
 }
 
-int Socket::processingRequest(std::string requestStr, int bytes_receive, int clientFd, Client &client)
+int Socket::processingRequest(std::string requestStr, Client &client)
 {
-    (void)bytes_receive;
-    std::string response;
     try {
         client.parseRequest(requestStr);
         if (client.getRequest().getIfComplete() == true)
-            response = client.sendResponse();
+            client.sendResponse();
+
     }
     catch(const std::exception& e) {
-        response = client.handleErrorResponse(e.what());
-    }
-    if (client.getRequest().getIfComplete() == true)    
-    {
-        int total_sent = 0;
-        // std::cout << "response " << response.c_str() << std::endl;
-        while (total_sent < (int)response.size())
-        {
-            int bytes_sent = this->sendData(clientFd, response.c_str() + total_sent, response.size() - total_sent);
-            if (bytes_sent > 0)
-                total_sent += bytes_sent;
-            else {
-                if (bytes_sent < 0)
-                    std::cerr << "Failed to send response to client." << std::endl;
-                break;
-            }
-        }
+        client.handleErrorResponse(e.what());
     }
     return 0;
 }
 
-int Socket::sendData(int target_sock, const char *data, unsigned int len)
+int Socket::processingResponse(int clientFd, Client &client)
 {
+    size_t temp;
+
+    temp = client.getTotalSent() + this->sendData(clientFd, client.getResponse().substr(client.getTotalSent()));
+    client.setTotalSent(temp);
+    return 0;
+}
+
+int Socket::sendData(int target_sock, std::string toSend)
+{
+    char data[2048];
     if (target_sock < 0)
     {
         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
         return -1;
     }
-    int res = send(target_sock, data, len, 0);
+    int res = 0;
+    unsigned long int i = 0;
+    for (; i < toSend.size() && i < sizeof(data); i++)
+        data[i] = toSend[i];
+
+    res = send(target_sock, data, i, 0);
     if (res == -1)
         std::cerr<< "Error\nFailed to send data" << std::endl;
     return res;
 }
-
-// int Socket::receiveData(int target_sock, std::string &request, unsigned int len)
-// {
-//     char buffer[];
-//     if (target_sock < 0)
-//     {
-//         std::cerr<<"Error\nInvalide target_sock"<<std::endl;
-//         return -1;
-//     }
-//     int totalReceived = 0;
-//     int res = 0;
-//     while (true)
-//     {
-//         res = recv(target_sock, buffer, len, 0);
-//         if (res > 0){
-//             request.append(buffer, res);// QUAND FICHIER TROP GROS ABORT ICI
-//             totalReceived += res;
-//         }
-//         if (res <= 0)
-//             break;
-//     }
-//     // std::cout << "receive = " << totalReceived << std::endl;
-//     return totalReceived;
-// }
 
 int Socket::receiveData(int target_sock, std::string &request)
 {
@@ -362,7 +355,9 @@ int Socket::receiveData(int target_sock, std::string &request)
     if (res <= 0)
         return 0;
     buffer[res] = '\0';
-    request = buffer;
+    request.clear();
+    for (int i(0); i < res; i++)
+        request += buffer[i];
     return res;
 }
 
