@@ -76,7 +76,6 @@ Socket::Socket(const std::vector<int> &ports, const std::vector<ServerConfig> &s
 
 Socket::Socket(const Socket &rhs) {
     *this = rhs;
-    // std::cout << "Socket copy construct" << std::endl;
 }
 
 Socket::~Socket()
@@ -106,7 +105,6 @@ void Socket::launchServer()
                 {
                     if (this->_clients[j].getClientFd() == fd)
                     {
-                        std::cout<< "Client erase POLL..." << std::endl;
                         this->_clients.erase(this->_clients.begin() + j);
                         break;
                     }
@@ -164,7 +162,6 @@ void Socket::launchServer()
             if (Utils::getTime() - this->_clients[k].getTimeLastRequest() >= this->_clients[k].getTimeout())
             {
                 int fd = this->_clients[k].getClientFd();
-                // std::cout << "Client " << this->_clients[k].getIp() << " disconnected after " << this->_clients[k].getTimeout() << " seconds of inactivity" << std::endl;
 
                 close(fd);
                 std::cout << "Client erase timeout" << std::endl;
@@ -206,7 +203,7 @@ void Socket::closeFds(std::vector<int>serverSocks)
             close(serverSocks[i]);
         }
     }
-    std::cerr<< "\nAll server sockets closed" << std::endl;
+    std::cout << "\nAll server sockets closed" << std::endl;
 }
 
 void Socket::acceptConnection(int serverSock, int i) 

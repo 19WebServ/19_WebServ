@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/18 15:00:01 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/18 13:54:06 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/02/27 16:58:38 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,6 @@ void ConfigFile::parseServer(std::string serverStr)
             throw std::runtime_error(word + ": unknown keyword");
             break;
         }
-        // std::cout << settings << std::endl;
         line.str(serverStr);
     }
     server.checkMissigValues();
