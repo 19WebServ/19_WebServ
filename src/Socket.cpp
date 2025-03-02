@@ -203,7 +203,19 @@ void Socket::closeFds(std::vector<int>serverSocks)
             close(serverSocks[i]);
         }
     }
-    std::cout << "\nAll server sockets closed" << std::endl;
+    // std::cout << "\nAll server sockets closed" << std::endl;
+
+    for (size_t i = 0; i < this->_clients.size(); i++)
+    {
+        int clientFd = this->_clients[i].getClientFd();
+        if (clientFd >= 0)
+        {
+            if (close(clientFd))
+                std::cerr << "Error\nFailed to close client socket" << std::endl;
+        }
+    }
+    // std::cout << "All client sockets closed" << std::endl;
+    std::cout << "\nAll FDs are closed" << std::endl;
 }
 
 void Socket::acceptConnection(int serverSock, int i) 
