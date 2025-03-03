@@ -437,9 +437,9 @@ void Client::handleErrorResponse(std::string error)
         else
             htmlContent = error;
         if (htmlContent.empty())
-            throw std::runtime_error("500 Internal Server Error: Failed to read html file.");
+            htmlContent = "500 Internal Server Error: Failed to read html file.";
         if (htmlContent.size() > _maxBodySize)
-            throw std::runtime_error("413 Content Too Large");
+            htmlContent = "413 Content Too Large";
         response =
         "HTTP/1.1 " + error + "\r\n"
         "Content-Type: text/html; charset=UTF-8\r\n"
