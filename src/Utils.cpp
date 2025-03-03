@@ -152,7 +152,7 @@ std::string Utils::intToStr(int len)
 void Utils::saveFile(const std::string& filename, const std::string& fileData) {
     std::ofstream outFile(("./document/" + filename).c_str(), std::ios::binary);
     if (!outFile) {
-        throw std::runtime_error("Failed to open file for writing.");
+        throw std::runtime_error("500 Internal Server Error: Failed to open file for writing.");
     }
     outFile.write(fileData.c_str(), fileData.size());
     outFile.close();

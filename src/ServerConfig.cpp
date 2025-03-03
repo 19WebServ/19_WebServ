@@ -108,10 +108,13 @@ void ServerConfig::extractMaxBodySize(std::string setting)
     if (Utils::areOnlyDigits(word)) {
         if (word.size() < 10 && atof(word.c_str()) <= 2000000000)
             _clientBodyLimit = atof(word.c_str());
-        else if (atof(word.c_str()) < 30)
-            _clientBodyLimit = 30;
+        else if (atof(word.c_str()) < 100)
+            throw std::runtime_error("Minimal Client Max BodySize expected 100");
         else
+        {
+            std::cout << "Maximal bodySize authorized 2000000000 => set to max" << std::endl;
             _clientBodyLimit = 2000000000;
+        }
     }
     else
         throw std::runtime_error(word + " : invalid maximum body size");

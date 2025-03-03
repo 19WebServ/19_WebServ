@@ -169,7 +169,7 @@ std::string Client::respondToGet()
                 throw std::runtime_error("403 Forbidden");
             htmlContent = Utils::readFile(path);
             if (htmlContent.empty())
-                throw std::runtime_error("Failed to read html file.");
+                throw std::runtime_error("500 Internal Server Error: Failed to read html file.");
         }
         else if (Utils::isDir(path)) {
             if (locationIndex.empty()) {
@@ -437,7 +437,7 @@ void Client::handleErrorResponse(std::string error)
         else
             htmlContent = error;
         if (htmlContent.empty())
-            throw std::runtime_error("Failed to read html file.");
+            throw std::runtime_error("500 Internal Server Error: Failed to read html file.");
         if (htmlContent.size() > _maxBodySize)
             throw std::runtime_error("413 Content Too Large");
         response =
@@ -447,10 +447,6 @@ void Client::handleErrorResponse(std::string error)
         "Connection: close\r\n"
         "\r\n" +
         htmlContent;
-    }
-    else {
-        std::cerr << "Error: " << error << std::endl;
-        std::exit(1); // JE SAIS PAS QUOI METTRE ICI
     }
     _response = response;
     _responseLen = _response.size();
