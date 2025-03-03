@@ -345,6 +345,7 @@ std::string Client::displayList(std::vector<std::string> listing)
 
 std::string Client::executeCGI(const std::string& scriptPath, std::string query) 
 {
+
     int pipefd[2];
     if (pipe(pipefd) == -1)
         throw std::runtime_error("500 Internal Server Error: Pipe failed");
@@ -387,11 +388,18 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
     char buffer[4096];
     std::string output;
     ssize_t bytesRead;
+    time_t start = time(NULL);
 
     while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) 
     {
         buffer[bytesRead] = '\0';
         output += buffer;
+        if (time(NULL) - start >= 5)
+        {
+            kill(pid, SIGKILL);
+            throw std::runtime_error("504 Gateway Timeout: CGI execution time exceeded");
+        }
+        usleep(100000);
     }
     close(pipefd[0]);
 
