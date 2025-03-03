@@ -32,7 +32,7 @@ void    Client::parseRequest(std::string request)
     if (_request.getIfComplete() == false) {
         std::string totalRequest = _request.getContent() + request;
         _request.setContent(totalRequest);
-        if (totalRequest.size() - 1 == _request.getContentLen())
+        if (totalRequest.size() == _request.getContentLen())
             _request.setComplete(true);
     }
     else if (_request.getIfComplete() == true && request.find("HTTP/1.1") == std::string::npos)
@@ -71,6 +71,10 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
 
     ss.str(requestStr);
     while (getline(ss, line)) {
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line = line.substr(0, line.size() - 1);
+        if (line.empty())
+            break;
         pos = line.find("boundary=");
         if (pos != std::string::npos) {
             temp.setBoundary(line.substr(pos + 9));
@@ -78,13 +82,11 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
         pos = line.find("Content-Length: ");
         if (pos != std::string::npos)
             temp.setContentLen(atoi(line.substr(pos + 16).c_str()));
-        if (!line.empty() && line[line.size() - 1] == '\r')
-            line = line.substr(0, line.size() - 1);
-        if (line.empty())
-            break;
     }
     while (getline(ss, line)) {
-        body += (line + '\n');
+        body += line;
+        if (!ss.eof() || (ss.eof() && requestStr[requestStr.size() - 1] == '\n'))
+            body += "\n";
     }
 
     if (temp.getContentLen() == body.size())
@@ -265,9 +267,11 @@ void Client::postContent()
     if (start == std::string::npos)
         throw std::runtime_error("Boundary not found in body.");
     while (start != std::string::npos) {
-        start += delimiter.size() + 1;
+        start += delimiter.size() + 2;
         end = body.find(delimiter, start);
-        std::string part = body.substr(start, end - start);
+        if (end == std::string::npos)
+            break;
+        std::string part = body.substr(start, end - start - 2);
         if (part.find("Content-Disposition: form-data;") != std::string::npos) {
             size_t filenamePos = part.find("filename=");
             if (filenamePos != std::string::npos) {
@@ -276,12 +280,13 @@ void Client::postContent()
                 std::string filename = part.substr(nameStart, nameEnd - nameStart);
 
                 size_t dataStart = part.find("\r\n\r\n", nameEnd) + 4;
-                std::string fileData = part.substr(dataStart, part.size() - dataStart - delimiter.size() - 7);
+                std::cout << dataStart << std::endl;
+                std::string fileData = part.substr(dataStart);
                 if (!filename.empty())
                     Utils::saveFile(filename, fileData);
             }
         }
-        start = body.find(delimiter, end);
+        start = end;
     }
 }
 
