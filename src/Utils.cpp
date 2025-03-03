@@ -6,7 +6,7 @@
 /*   By: vdecleir <vdecleir@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 17:44:04 by vdecleir          #+#    #+#             */
-/*   Updated: 2025/02/24 18:04:23 by vdecleir         ###   ########.fr       */
+/*   Updated: 2025/03/03 12:30:56 by vdecleir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,15 +206,7 @@ bool Utils::isDeletable(std::string path, std::string file)
         throw std::runtime_error("400 Bad request");
     else if (!Utils::isFile(completePath))
         throw std::runtime_error("404 Not found");
-    else if (!Utils::hasWritePermission(path.c_str()) || !Utils::hasExecutePermission(path.c_str()))
+    else if (!Utils::hasWritePermission(path.c_str()) || !Utils::hasWritePermission(completePath.c_str()) || !Utils::hasExecutePermission(completePath.c_str()))
         throw std::runtime_error("403 Forbiden");
     return true;
 }
-
-// bool Utils::tooLarge(std::string request, size_t maxBody)
-// {
-//     std::string body;
-//     std::istringstream ss;
-//     ss.str(request);
-    
-// }

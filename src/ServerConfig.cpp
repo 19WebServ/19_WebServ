@@ -47,7 +47,7 @@ void ServerConfig::extractPort(std::string setting)
         throw std::runtime_error("More than 1 port on the line.");
     if (Utils::areOnlyDigits(word)) {
         nb = atof(word.c_str());
-        if (nb < 1024 || nb > 65535)
+        if (word.size() > 5 || nb < 1024 || nb > 65535)
             throw std::runtime_error(word + " : invalid port.");
         else
             _port.push_back(static_cast<int>(nb));
@@ -105,8 +105,14 @@ void ServerConfig::extractMaxBodySize(std::string setting)
     getline(ss, word, ' ');
     if (word.empty())
         throw std::runtime_error("missing client max body size.");
-    if (Utils::areOnlyDigits(word))
-        _clientBodyLimit = atof(word.c_str());
+    if (Utils::areOnlyDigits(word)) {
+        if (word.size() < 10 && atof(word.c_str()) <= 2000000000)
+            _clientBodyLimit = atof(word.c_str());
+        else if (atof(word.c_str()) < 30)
+            _clientBodyLimit = 30;
+        else
+            _clientBodyLimit = 2000000000;
+    }
     else
         throw std::runtime_error(word + " : invalid maximum body size");
 }

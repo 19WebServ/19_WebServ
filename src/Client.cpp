@@ -233,7 +233,7 @@ std::string Client::respondToDelete()
     std::string response;
     std::string toDelete;
     std::string baseDir;
-    std::string completePath = _server.getLocationRoot(_request.getLocation()) + _request.getPath();
+    std::string completePath = _server.getLocationRoot(_request.getLocation()) + "/" + _request.getPath();
     if (completePath[completePath.size() - 1] == '/')
         completePath = completePath.substr(0, completePath.size() - 1);
     size_t pos = completePath.find_last_of('/');
@@ -322,22 +322,22 @@ std::string Client::listDir(std::string root)
 std::string Client::displayList(std::vector<std::string> listing)
 {
     std::string location = _request.getLocation();
-    std::string htmlContent;
-    "<!DOCTYPE html>\n"
-    "<html>\n"
-    "<head>\n"
-    "<title>" + location + "</title>\n"
-    "</head>\n"
-    "<body>\n"
-    "<h1>INDEX</h1>\n"
-    "<p>\n";
+    std::string htmlContent =
+    "<!DOCTYPE html>\n\
+    <html>\n\
+    <head>\n\
+    <title>" + location + "</title>\n\
+    </head>\n\
+    <body>\n\
+    <p>Index of /" + location + "/</p>\n\
+    <p>----------------------------------------------------------------------------------------</p>\n";
 
     if (location[0] != '/')
         location = "/" + location;
     for (size_t i(0); i < listing.size(); i++)
-        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_port) + location + "/" + listing[i] + "?download=true\">" + listing[i] + "</a></p>\n";
+        htmlContent += "\t\t<p><a href=\"http://" + _server.getHost() + ":" + Utils::intToStr(_port) + location + "/" + listing[i] + "\">" + listing[i] + "</a></p>\n";
     htmlContent +="\
-    </p>\n\
+    <p>----------------------------------------------------------------------------------------</p>\n\
     </body>\n\
     </html>\n";
     return htmlContent;

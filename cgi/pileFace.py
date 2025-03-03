@@ -22,6 +22,8 @@ else:
     resultat = ""
     message = "Faites votre choix et lancez le jeu !"
 
+# while True:
+#     print("coucou")
 
 # Contenu HTML amélioré
 html = f"""<!DOCTYPE html>
