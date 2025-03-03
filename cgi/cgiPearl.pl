@@ -2,33 +2,53 @@
 use strict;
 use warnings;
 use utf8;
-use CGI;
 
-my $cgi = CGI->new;
+# Lire les variables d'environnement
+my $method = $ENV{'REQUEST_METHOD'} || "GET";
+my $query_string = $ENV{'QUERY_STRING'} || "";
 
-# Generation de la page HTML
-print <<'HTML';
+# Fonction pour extraire les paramètres d'une chaîne query
+sub parse_query {
+    my ($query) = @_;
+    my %params;
+    foreach my $pair (split /&/, $query) {
+        my ($key, $value) = split /=/, $pair, 2;
+        next unless defined $key and defined $value;
+        $value =~ tr/+/ /;
+        $value =~ s/%([a-fA-F0-9]{2})/chr(hex($1))/eg;
+        $params{$key} = $value;
+    }
+    return %params;
+}
+
+# Extraire les paramètres
+my %params = parse_query($query_string);
+my $subject = $params{'subject'} || '';
+my $verb = $params{'verb'} || '';
+my $complement = $params{'complement'} || '';
+
+# Verifier si tous les champs sont remplis
+if ($subject eq '' || $verb eq '' || $complement eq '') {
+    print <<"HTML";
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generateur de Phrase</title>
+    <title>Entree des mots</title>
     <style>
-        /* Styles communs */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-
         body {
             line-height: 1.6;
             color: #333;
             background-color: #f4f4f9;
+            text-align: center;
         }
-
         .banner {
             background-color: #4CAF50;
             color: white;
@@ -36,7 +56,6 @@ print <<'HTML';
             padding: 1rem;
             font-size: 1.5rem;
         }
-
         nav ul {
             list-style: none;
             background: #444;
@@ -44,53 +63,43 @@ print <<'HTML';
             justify-content: center;
             padding: 0.5rem 0;
         }
-
         nav ul li {
             margin: 0 1rem;
         }
-
         nav ul li a {
             color: #fff;
             text-decoration: none;
             padding: 0.5rem 1rem;
             display: block;
         }
-
         nav ul li a:hover {
             background: #555;
         }
-
-        main {
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .form-container {
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
             margin-top: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
         }
-
-        input, button {
-            padding: 10px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
+        input[type="text"] {
+            padding: 8px;
+            margin: 10px;
             border-radius: 5px;
+            border: 1px solid #ccc;
         }
-
-        button {
-            background: #4CAF50;
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #28a745;
             color: white;
-            font-weight: bold;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
-
-        button:hover {
-            background: #45a049;
+        input[type="submit"]:hover {
+            background-color: #218838;
         }
-
         footer {
             background: #333;
             color: white;
@@ -101,74 +110,70 @@ print <<'HTML';
             width: 100%;
         }
     </style>
-    <script>
-        function generateSentence() {
-            var subject = document.getElementById('subject').value || 'Le chat';
-            var verb = document.getElementById('verb').value || 'mange';
-            var complement = document.getElementById('complement').value || 'une pomme';
-
-            var phrases = [
-                subject + ' ' + verb + ' ' + complement + '.',
-                subject + ' adore ' + verb + ' ' + complement + '.',
-                'Parfois, ' + subject + ' ' + verb + ' aussi ' + complement + '.',
-                'Il arrive que ' + subject + ' ' + verb + ' tranquillement ' + complement + '.',
-                subject + ' n\'a jamais cesse de ' + verb + ' ' + complement + '.',
-                subject + ' aime bien ' + verb + ' ' + complement + ' tous les jours.',
-                'Un jour, ' + subject + ' a decide de ' + verb + ' ' + complement + '.',
-                subject + ' ne peut pas s\'empecher de ' + verb + ' ' + complement + '.',
-                'Chaque matin, ' + subject + ' commence par ' + verb + ' ' + complement + '.',
-                subject + ' trouve du plaisir a ' + verb + ' ' + complement + '.',
-                'Pourquoi ' + subject + ' veut-il toujours ' + verb + ' ' + complement + ' ?',
-                subject + ' ne sait pas comment arreter de ' + verb + ' ' + complement + '.',
-                'Hier encore, ' + subject + ' etait en train de ' + verb + ' ' + complement + '.',
-                'Tout le monde sait que ' + subject + ' adore ' + verb + ' ' + complement + '.',
-                subject + ' pretend ne pas aimer ' + verb + ' ' + complement + ', mais c\'est faux.',
-                'Dans ses reves, ' + subject + ' ' + verb + ' ' + complement + ' sans arret.',
-                'Meme sous la pluie, ' + subject + ' continue de ' + verb + ' ' + complement + '.',
-                subject + ' essaye toujours de mieux ' + verb + ' ' + complement + '.',
-                'Il parait que ' + subject + ' ne sait pas bien ' + verb + ' ' + complement + '.',
-                'Avec un peu d\'effort, ' + subject + ' pourrait ' + verb + ' ' + complement + ' encore mieux.'
-            ];
-
-            var randomSentence = phrases[Math.floor(Math.random() * phrases.length)];
-
-            document.getElementById('generatedSentence').innerHTML = '<strong>' + randomSentence + '</strong>';
-        }
-    </script>
 </head>
 <body>
-    <!-- Bannière -->
-    <div class="banner">
-        Generateur de Phrase
-    </div>
-
-    <!-- Menu -->
+    <div class="banner">Generateur de phrases</div>
     <nav>
         <ul>
             <li><a href="/">Accueil</a></li>
-            <li><a href="/televers">Televers</a></li>
             <li><a href="/cgi">CGI</a></li>
-            <li><a href="/redirect">Redirect</a></li>
+            <li><a href="/dirList">Directory listing</a></li>
         </ul>
     </nav>
+    <div class="container">
+        <h1>Veuillez entrer trois mots :</h1>
+        <form action="/cgi/cgiPearl.pl" method="get">
+            <label for="subject">Sujet :</label>
+            <input type="text" name="subject" required><br>
+            <label for="verb">Verbe :</label>
+            <input type="text" name="verb" required><br>
+            <label for="complement">Complement :</label>
+            <input type="text" name="complement" required><br>
+            <input type="submit" value="Generer">
+        </form>
+    </div>
+    <footer>&copy; 2024 Mon Site Web. Tous droits reserves.</footer>
+</body>
+</html>
+HTML
+    exit;
+}
 
-    <!-- Contenu principal -->
-    <main>
-        <h2>Entrez des mots pour generer une phrase aleatoire</h2>
-        <div class="form-container">
-            <input type="text" id="subject" placeholder="Saisis un sujet" required>
-            <input type="text" id="verb" placeholder="Saisis un verbe" required>
-            <input type="text" id="complement" placeholder="Saisis un complement" required>
-            <button onclick="generateSentence()">Generer une phrase</button>
-        </div>
-        <h2>Phrase generee :</h2>
-        <p id="generatedSentence"></p>
-    </main>
+# Generer une phrase aleatoire
+my @phrases = (
+    "$subject $verb $complement.",
+    "$subject adore $verb $complement.",
+    "Parfois, $subject $verb aussi $complement.",
+    "$subject aime bien $verb $complement tous les jours.",
+    "Un jour, $subject a decide de $verb $complement.",
+    "$subject ne peut pas s'empecher de $verb $complement.",
+    "Hier encore, $subject etait en train de $verb $complement.",
+    "Avec un peu d'effort, $subject pourrait $verb $complement encore mieux."
+);
+my $random_sentence = $phrases[int(rand(@phrases))];
 
-    <!-- Pied de page -->
-    <footer>
-        &copy; 2024 Mon Site Web. Tous droits reserves.
-    </footer>
+# Generer la reponse HTML
+print <<"HTML";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Phrase generee</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; }
+        .banner { background-color: #4CAF50; color: white; padding: 1rem; font-size: 1.5rem; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); display: inline-block; margin-top: 2rem; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; position: fixed; bottom: 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="banner">Generateur de phrases</div>
+    <div class="container">
+        <h1>Votre phrase generee :</h1>
+        <p><strong>$random_sentence</strong></p>
+        <a href="/cgi/cgiPearl.pl" class="btn">Recommencer</a>
+    </div>
+    <footer>&copy; 2024 Mon Site Web. Tous droits reserves.</footer>
 </body>
 </html>
 HTML

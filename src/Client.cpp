@@ -344,7 +344,6 @@ std::string Client::displayList(std::vector<std::string> listing)
 
 std::string Client::executeCGI(const std::string& scriptPath, std::string query) 
 {
-
     int pipefd[2];
     if (pipe(pipefd) == -1)
         throw std::runtime_error("500 Internal Server Error: Pipe failed");
@@ -388,24 +387,37 @@ std::string Client::executeCGI(const std::string& scriptPath, std::string query)
     std::string output;
     ssize_t bytesRead;
     time_t start = time(NULL);
-
-    while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) 
+    if (scriptPath == "cgi/pileFace.py")
     {
-        buffer[bytesRead] = '\0';
-        output += buffer;
-        if (time(NULL) - start >= 5)
+        while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) 
         {
-            kill(pid, SIGKILL);
-            throw std::runtime_error("504 Gateway Timeout: CGI execution time exceeded");
+            buffer[bytesRead] = '\0';
+            output += buffer;
+            if (time(NULL) - start >= 5)
+            {
+                kill(pid, SIGKILL);
+                throw std::runtime_error("504 Gateway Timeout: CGI execution time exceeded");
+            }
+            usleep(100000);
         }
-        usleep(100000);
+    }
+    else
+    {
+        while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) 
+        {
+            buffer[bytesRead] = '\0';
+            output += buffer;
+        }    
     }
     close(pipefd[0]);
 
     int status;
     waitpid(pid, &status, 0);
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+    {
+        std::cout << "Hello" << std::endl;
         throw std::runtime_error("500 Internal Server Error: CGI script failed");
+    }
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
            "Content-Length: " + Utils::intToStr(output.size()) + "\r\n"
