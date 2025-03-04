@@ -83,6 +83,8 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
         if (pos != std::string::npos)
             temp.setContentLen(atoi(line.substr(pos + 16).c_str()));
     }
+    if (temp.getContentLen() > _maxBodySize)
+        throw std::runtime_error("413 Content too large");
     while (getline(ss, line)) {
         body += line;
         if (!ss.eof() || (ss.eof() && requestStr[requestStr.size() - 1] == '\n'))
@@ -93,8 +95,6 @@ void Client::createRequest(std::string requestStr, std::string location, std::st
         temp.setComplete(true);
     else
         temp.setComplete(false);
-    if (body.size() > _maxBodySize)
-        throw std::runtime_error("413 Content Too Large");
     temp.setContent(body);
     this->_request = temp;
 }
