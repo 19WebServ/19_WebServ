@@ -48,6 +48,7 @@ void    Client::parseRequest(std::string request)
         if (!path.empty())
             path = path.substr(location.size() + 1);
         path = path.erase(0, 1);
+        std::cout << "location : " << location << "    path : " << path << std::endl;
         for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
             if (method == _server.getLocationAllowedMethods(location)[i]) {
                 createRequest(request, location, method, path);
@@ -125,7 +126,7 @@ void    Client::sendResponse()
         response = this->respondToPost();
         break;
     case 2:
-    //     /* DELETE */
+        /* DELETE */
         response = this->respondToDelete();
         break;
         
@@ -152,6 +153,7 @@ std::string Client::respondToGet()
     else
         locationIndex = _request.getPath();
     std::string path = locationRoot + "/" + locationIndex;
+    std::cout << path << std::endl;
     if (!_server.getLocationRedirect(locationBlock).empty())
         response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
@@ -174,16 +176,10 @@ std::string Client::respondToGet()
                 throw std::runtime_error("500 Internal Server Error: Failed to read html file.");
         }
         else if (Utils::isDir(path)) {
-            if (locationIndex.empty()) {
-                if (_server.getLocationDirectoryListing(locationBlock))
+            if (locationIndex.empty() && _server.getLocationDirectoryListing(locationBlock))
                     htmlContent = listDir(_server.getLocationRoot(locationBlock));
-                else
-                    throw std::runtime_error("403 Forbidden");
-            }
-            else {
-                response = makeRedirection("301", _server.getLocationIndex(locationBlock));
-                return response;
-            }
+            else
+                throw std::runtime_error("403 Forbidden");
         }
         else
             throw std::runtime_error("404 Not Found");
