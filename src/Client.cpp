@@ -48,7 +48,6 @@ void    Client::parseRequest(std::string request)
         if (!path.empty())
             path = path.substr(location.size() + 1);
         path = path.erase(0, 1);
-        std::cout << "location : " << location << "    path : " << path << std::endl;
         for (size_t i(0); i < _server.getLocationAllowedMethods(location).size(); i++) {
             if (method == _server.getLocationAllowedMethods(location)[i]) {
                 createRequest(request, location, method, path);
@@ -153,7 +152,6 @@ std::string Client::respondToGet()
     else
         locationIndex = _request.getPath();
     std::string path = locationRoot + "/" + locationIndex;
-    std::cout << path << std::endl;
     if (!_server.getLocationRedirect(locationBlock).empty())
         response = makeRedirection(_server.getLocationRedirect(locationBlock).begin()->first, _server.getLocationRedirect(locationBlock).begin()->second);
     else {
